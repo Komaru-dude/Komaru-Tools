@@ -3,7 +3,7 @@ import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.utils import deeplinks
+from aiogram.utils import deep_linking
 from dotenv import load_dotenv
 from database import create_db, add_user, set_user_rank, get_user_rank, update_user_warns, update_user_bans, update_user_mutes
 
