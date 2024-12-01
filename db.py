@@ -12,9 +12,10 @@ def create_db():
                         mutes INTEGER DEFAULT 0,
                         reputation INTEGER DEFAULT 0,
                         rank TEXT DEFAULT 'Участник',
+                        status TEXT DEFAULT '',
                         message_count INTEGER DEFAULT 0,
                         demotivators INTEGER DEFAULT 0,
-                        pred_limit INTEGER DEFAULT 3
+                        warn_limit INTEGER DEFAULT 3
                     )''')
     conn.commit()
     conn.close()
@@ -37,9 +38,11 @@ def get_user_rank(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''SELECT rank FROM users WHERE user_id = ?''', (user_id,))
-    rank = cursor.fetchone()[0]
+    result = cursor.fetchone()
     conn.close()
-    return rank
+    if result is None:
+        return None
+    return result[0]
 
 def update_user_warns(user_id):
     conn = sqlite3.connect(DB_PATH)
@@ -47,9 +50,11 @@ def update_user_warns(user_id):
     cursor.execute('''UPDATE users SET warns = warns + 1 WHERE user_id = ?''', (user_id,))
     conn.commit()
     cursor.execute('''SELECT warns FROM users WHERE user_id = ?''', (user_id,))
-    warns = cursor.fetchone()[0]
+    result = cursor.fetchone()
     conn.close()
-    return warns
+    if result is None:
+        return 0  # Можно вернуть 0 или любое другое значение по умолчанию
+    return result[0]
 
 def update_user_bans(user_id):
     conn = sqlite3.connect(DB_PATH)
