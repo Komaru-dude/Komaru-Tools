@@ -3,6 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
+from db import get_user_data, update_user_id
 from dotenv import load_dotenv
 import os
 
@@ -27,18 +28,21 @@ async def cmd_info(message: types.Message):
     # Достаём информацию о пользователе
     user = message.from_user
     first_name = user.first_name
-    last_name = f" {user.last_name}" if user.last_name else ""
     user_id = user.id
-    user_name = first_name + last_name
     
     # Ссылка на профиль по ID
     profile_link = f"https://t.me/{user_id}"
 
     # Формируем кликабельное имя пользователя
-    clickable_name = f"<a href='{profile_link}'>{user_name}</a>"
+    clickable_name = f"<a href='{profile_link}'>{first_name}</a>"
+
+    # Получаем данные из db
+    user_data = get_user_data(user_id)
+    if not user_id == user_data[0]:
+        update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"Информация о пользователе {clickable_name}", parse_mode=ParseMode.HTML)
+    await message.reply(f"Информация о пользователе {clickable_name}\nПреды/муты/баны: {user_data[1]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}", parse_mode=ParseMode.HTML)
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
