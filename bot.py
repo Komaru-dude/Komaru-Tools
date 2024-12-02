@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
-from db import get_user_data, update_user_id, create_db
+from db import get_user_data, update_user_id
 from dotenv import load_dotenv
 import os
 
@@ -46,8 +46,6 @@ async def cmd_info(message: types.Message):
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
-    if not os.path.exists("users.db"):
-        create_db()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 DB_PATH = 'users.db'
 
@@ -19,6 +20,10 @@ def create_db():
                     )''')
     conn.commit()
     conn.close()
+
+# Проверяем существование базы данных и создаём её при необходимости
+if not os.path.exists(DB_PATH):
+    create_db()
 
 def add_user(user_id):
     conn = sqlite3.connect(DB_PATH)
