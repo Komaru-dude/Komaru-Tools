@@ -4,9 +4,10 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
-from db import get_user_data, update_user_id, update_user_warns
+from db import get_user_data, update_user_id, update_user_warns, update_count_messges
 from dotenv import load_dotenv
 import os
+from datetime import datetime, timedelta
 
 # Загружаем переменные из dotenv
 load_dotenv()
@@ -32,7 +33,7 @@ async def cmd_info(message: types.Message):
     user_id = user.id
     
     # Ссылка на профиль по ID
-    profile_link = f"https://t.me/{user_id}"
+    profile_link = f"tg://user?id={user_id}"
 
     # Формируем кликабельное имя пользователя
     clickable_name = f"<a href='{profile_link}'>{first_name}</a>"
@@ -95,6 +96,39 @@ async def somebody_added(message: types.Message):
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
     await message.reply("Приве брадок!")
+
+@dp.message(F.text)
+async def message_handler(message: types.Message): 
+    user_id = message.from_user.id
+    text = message.text
+    update_count_messges(user_id)
+    mute_user = check_ban_words(text)
+    if mute_user():
+        print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
+        duration = 7200
+        new_time = datetime.now() + timedelta(seconds=duration)
+        timestamp = new_time.timestamp()
+        try:
+            await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
+            await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
+        except:
+            message.reply("Не удалось ограничить пользователя, сообщите разработчику")
+
+def check_ban_words(text: str):
+    mute_user = False
+    ban_words_file = "ban_words.txt"
+
+    # Читаем список бан-слов из файла
+    with open(ban_words_file, 'r', encoding='utf-8') as f:
+        ban_words = f.read().splitlines()  # Читаем строки и убираем символы новой строки
+
+    # Проверяем, есть ли бан-слова в тексте
+    for word in ban_words:
+        if word.lower() in text.lower():  # Сравниваем без учета регистра
+            mute_user = True
+            break  # Если хотя бы одно слово найдено, выходим из цикла
+
+    return mute_user
 
 # Запуск процесса поллинга новых апдейтов
 async def main():

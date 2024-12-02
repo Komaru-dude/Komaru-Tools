@@ -75,6 +75,13 @@ def update_user_mutes(user_id):
     conn.commit()
     conn.close()
 
+def update_count_messges(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET message_count = message_count + 1 WHERE user_id =?''', (user_id,))
+    conn.commit()
+    conn.close()
+
 def get_user_data(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
