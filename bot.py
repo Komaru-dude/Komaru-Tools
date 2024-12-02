@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
-from db import get_user_data, update_user_id
+from db import get_user_data, update_user_id, update_user_warns
 from dotenv import load_dotenv
 import os
 
@@ -42,7 +42,47 @@ async def cmd_info(message: types.Message):
         update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"Информация о пользователе {clickable_name}\nПреды/муты/баны: {user_data[1]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}", parse_mode=ParseMode.HTML)
+    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[10]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
+
+# Обработчик команды /warn
+@dp.message(Command("warn"))
+async def warn_cmd(message: types.Message):
+    # Разделяем команду и аргументы
+    parts = message.text.split(' ', 2)
+    
+    # Проверяем, правильно ли введены аргументы
+    if len(parts) > 1:
+        mention_or_id = parts[1]  # @username или ID пользователя
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+        
+        # Если упоминание в формате @username
+        if mention_or_id.startswith('@'):
+            username = mention_or_id[1:]  # Убираем '@' для получения только имени пользователя
+            
+            try:
+                # Получаем ID пользователя по юзернейму
+                user = await bot.get_chat_member(message.chat.id, username)
+                user_id = user.user.id  # Получаем ID пользователя
+                # Обновляем количество предупреждений
+                update_user_warns(user_id)
+                # Отправляем предупреждение пользователю
+                await bot.send_message(user_id, f"Вы были предупреждены. Причина: {reason}")
+                await message.reply(f"Пользователь {username} был предупрежден. Причина: {reason}")
+            except Exception as e:
+                await message.reply("Не удалось найти пользователя по данному имени.")
+                logging.error(f"Ошибка при поиске пользователя: {e}")
+        
+        # Если введен ID пользователя
+        elif mention_or_id.isdigit():
+            user_id = int(mention_or_id)
+            # Обновляем количество предупреждений
+            update_user_warns(user_id)
+            await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
+        
+        else:
+            await message.reply("Некорректный формат ввода. Используйте @username или ID пользователя.")
+    else:
+        await message.reply("Синтаксис команды некорректный. При ошибке сообщите разработчику.")
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
