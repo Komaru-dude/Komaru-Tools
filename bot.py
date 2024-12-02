@@ -1,8 +1,9 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
+from aiogram.types import FSInputFile
 from db import get_user_data, update_user_id, update_user_warns
 from dotenv import load_dotenv
 import os
@@ -65,8 +66,6 @@ async def warn_cmd(message: types.Message):
                 user_id = user.user.id  # Получаем ID пользователя
                 # Обновляем количество предупреждений
                 update_user_warns(user_id)
-                # Отправляем предупреждение пользователю
-                await bot.send_message(user_id, f"Вы были предупреждены. Причина: {reason}")
                 await message.reply(f"Пользователь {username} был предупрежден. Причина: {reason}")
             except Exception as e:
                 await message.reply("Не удалось найти пользователя по данному имени.")
@@ -83,6 +82,19 @@ async def warn_cmd(message: types.Message):
             await message.reply("Некорректный формат ввода. Используйте @username или ID пользователя.")
     else:
         await message.reply("Синтаксис команды некорректный. При ошибке сообщите разработчику.")
+
+@dp.message(F.new_chat_members)
+async def somebody_added(message: types.Message):
+    for user in message.new_chat_members:
+        xiao_hello_image = FSInputFile("xiao.jpg")
+        await message.reply_photo(
+            xiao_hello_image,
+            caption=f"Гойда {user.full_name}, добро пожаловать в кочон подвал.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
+        )
+
+@dp.message(Command('privetbradok'))
+async def cmd_privebradok(message: types.Message):
+    await message.reply("Приве брадок!")
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
