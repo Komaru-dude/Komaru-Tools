@@ -103,7 +103,7 @@ async def message_handler(message: types.Message):
     text = message.text
     update_count_messges(user_id)
     mute_user = check_ban_words(text)
-    if mute_user():
+    if mute_user:
         print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
         duration = 7200
         new_time = datetime.now() + timedelta(seconds=duration)
