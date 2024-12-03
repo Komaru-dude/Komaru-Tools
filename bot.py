@@ -150,7 +150,7 @@ async def process_rank(message: types.Message, state: FSMContext):
 
     # Здесь нужно выполнить логику смены ранга
     print(f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
-
+    db.set_rank(rank)
     await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
