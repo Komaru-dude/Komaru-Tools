@@ -47,7 +47,7 @@ def has_permission(user_id):
 def set_rank(user_id, rank):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''UPDATE rank SET rank = ? WHERE user_id = ?''', (rank, user_id))
+    cursor.execute('''UPDATE users SET rank = ? WHERE user_id = ?''', (rank, user_id))
     conn.commit()
     conn.close()
 
