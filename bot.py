@@ -156,9 +156,7 @@ async def cmd_warn_history(message: types.Message):
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
-    dp.include_router(router1, priority=1)  # Роутер с более низким числом круче
-    dp.include_router(router2, priority=2)
-
+    dp.include_routers(router1, router2)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
