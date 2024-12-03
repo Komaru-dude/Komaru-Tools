@@ -7,6 +7,7 @@ def create_db():
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                         user_id INTEGER PRIMARY KEY,
+                        username INTEGER DEFAULT '',
                         warns INTEGER DEFAULT 0,
                         bans INTEGER DEFAULT 0,
                         mutes INTEGER DEFAULT 0,
@@ -43,6 +44,32 @@ def has_permission(user_id):
     user_status = result[0]  # Получаем статус пользователя
     return user_status in allowed_ranks  # Проверяем, входит ли ранг в разрешенные
 
+def user_have_username(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT username FROM users WHERE user_id = ?', (user_id,))
+    exists = cursor.fetchone()
+    conn.close()
+    if not exists == '':
+        return False
+    else:
+        return True
+    
+def add_username(user_id, username):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE users SET username = ? WHERE user_id = ?', (username, user_id))
+    conn.commit()
+    conn.close()
+
+def get_username(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
 def set_rank(user_id, rank):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -54,8 +81,8 @@ def user_exists(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''SELECT 1 FROM users WHERE user_id = ?''', (user_id,))
-    conn.close()
     exists = cursor.fetchone() is not None
+    conn.close()
     return exists
 
 def set_status(user_id, status):
@@ -196,8 +223,7 @@ def get_user_data(user_id):
     
     if user_data is None:
         # Если пользователя нет, создаём его
-        cursor.execute('''INSERT INTO users (user_id) VALUES (?)''', (user_id,))
-        conn.commit()
+        add_user(user_id)
         # Повторно извлекаем данные для нового пользователя
         cursor.execute('''SELECT * FROM users WHERE user_id = ?''', (user_id,))
         user_data = cursor.fetchone()

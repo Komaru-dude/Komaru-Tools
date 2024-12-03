@@ -23,8 +23,11 @@ dp = Dispatcher()
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     user_id = message.from_user.id
+    username = message.from_user.username
     if not db.user_exists(user_id):
         db.add_user(user_id)
+    if not db.user_have_username(user_id):
+        db.add_username(user_id, username)
     await message.reply("Гойда брадок!")
 
 @dp.message(Command("info"))
@@ -46,7 +49,7 @@ async def cmd_info(message: types.Message):
         db.update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nРанг: {user_data[5]}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
+    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[3]}/{user_data[4]} \n\nЮзернейм: {user_data[1]}\nАйди: {user_id}\nРанг: {user_data[6]}\nКол-во сообщений: {user_data[8]}\nРепутация: {user_data[5]}\nПрефикс: {user_data[7]}", parse_mode=ParseMode.HTML)
 
 # Обработчик команды /warn
 @dp.message(Command("warn"))
@@ -225,6 +228,11 @@ async def cmd_rules(message: types.Message):
 async def message_handler(message: types.Message): 
     user_id = message.from_user.id
     text = message.text
+    username = message.from_user.username
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
+    if not db.user_have_username(user_id):
+        db.add_username(user_id, username)
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
@@ -239,6 +247,15 @@ async def message_handler(message: types.Message):
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
         except:
             message.reply("Не удалось ограничить пользователя, сообщите разработчику")
+
+@dp.message(F.photo, F.video)
+async def registrator(message: types.Message):
+    user_id = message.from_user.id
+    username = message.from_user.username
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
+    if not db.user_have_username(user_id):
+        db.add_username(user_id, username)
 
 def check_ban_words(text: str):
     mute_user = False
