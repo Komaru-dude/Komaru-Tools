@@ -28,7 +28,7 @@ async def cmd_start(message: types.Message):
         db.add_user(user_id)
     if not db.user_have_username(user_id):
         db.add_username(user_id, username)
-    await message.reply(f"Гойда @{username})
+    await message.reply(f"Гойда @{username}")
 
 @dp.message(Command("info"))
 async def cmd_info(message: types.Message):
