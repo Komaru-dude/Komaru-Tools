@@ -1,14 +1,10 @@
-import asyncio
-import logging
+import asyncio, logging, os, db
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
-import db
 from dotenv import load_dotenv
-import os
 from datetime import datetime, timedelta
-import re
 
 # Загружаем переменные из dotenv
 load_dotenv()
@@ -79,6 +75,7 @@ async def warn_cmd(message: types.Message):
             await message.reply("Синтаксис команды некорректный. Используйте /warn ID причина или ответьте на сообщение пользователя с /warn причина.")
 
 
+
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
@@ -93,23 +90,40 @@ async def somebody_added(message: types.Message):
 async def cmd_privebradok(message: types.Message):
     await message.reply("Приве брадок!")
 
-@dp.message(Command("warns"))
-async def cmd_warn_history(message: types.Message):
+@dp.message(Command("history"))
+async def cmd_history(message: types.Message):
     print("Начало")
     user_id = message.from_user.id
     print("Вытаскиваем историю")
-    history = db.get_warns_history(user_id)
+    history = db.get_history(user_id)
     print("Если истории нет")
+    
     if not history:  # Если истории нет
-        await message.reply("У вас пока нет предупреждений.")
+        await message.reply("У вас пока нет наказаний.")
         return
+    
     print("Формируем ответ")
     # Формируем текст ответа
+    history_text = ""
+    for i, entry in enumerate(history, start=1):
+        punishment_type = entry["type"]
+        reason = entry.get("reason", "Без причины")
+        
+        # Если это мут или бан, добавляем информацию о времени действия
+        if punishment_type in ["mute", "ban"]:
+            end_time = entry.get("end_time", None)
+            if end_time:
+                end_time_str = datetime.datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')
+                history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}, Время окончания: {end_time_str}\n"
+            else:
+                history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}, Время действия не указано\n"
+        else:
+            history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}\n"
+    
     warns_count = len(history)
-    history_text = "\n".join([f"{i + 1}. {reason}" for i, reason in enumerate(history)])
     response = (
-        f"Всего предупреждений: {warns_count}\n"
-        f"История:\n{history_text}"
+        f"Всего наказаний: {warns_count}\n"
+        f"История наказаний:\n{history_text}"
     )
     print(response)
     await message.reply(response)
@@ -122,8 +136,6 @@ async def cmd_rules(message: types.Message):
         komaru_rules_video,
         caption=f"Привет {user.full_name}\nВот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
     )
-
-
 
 @dp.message(F.text)
 async def message_handler(message: types.Message): 
