@@ -51,7 +51,7 @@ async def cmd_info(message: types.Message):
 async def warn_cmd(message: types.Message):
     # Разделяем команду и аргументы
     parts = message.text.split(' ', 2)
-    
+
     # Проверяем, правильно ли введены аргументы
     if len(parts) > 1:
         mention_or_id = parts[1]  # @username или ID пользователя
@@ -69,28 +69,33 @@ async def warn_cmd(message: types.Message):
                 db.update_user_warns(user_id, reason)
                 await message.reply(f"Пользователь {username} был предупрежден. Причина: {reason}")
             except Exception as e:
-                await message.reply("Не удалось найти пользователя по данному имени.")
+                await message.reply(f"Не удалось найти пользователя @{username}. Ошибка: {str(e)}")
                 logging.error(f"Ошибка при поиске пользователя: {e}")
         
         # Если введен ID пользователя
         elif mention_or_id.isdigit():
             user_id = int(mention_or_id)
-            # Обновляем количество предупреждений
-            db.update_user_warns(user_id, reason)
-            await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
+            try:
+                # Обновляем количество предупреждений
+                db.update_user_warns(user_id, reason)
+                await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
+            except Exception as e:
+                await message.reply(f"Не удалось найти пользователя с ID {user_id}. Ошибка: {str(e)}")
         
         else:
             await message.reply("Некорректный формат ввода. Используйте @username или ID пользователя.")
     else:
-        await message.reply("Синтаксис команды некорректный. При ошибке сообщите разработчику.")
+        await message.reply("Синтаксис команды некорректный. Используйте /warn @username или /warn ID.")
+
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
+        chat_name = message.chat.title
         xiao_hello_image = FSInputFile("xiao.jpg")
         await message.reply_photo(
             xiao_hello_image,
-            caption=f"Гойда {user.full_name}, добро пожаловать в кочон подвал.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
+            caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
         )
 
 @dp.message(Command('privetbradok'))
@@ -126,6 +131,8 @@ async def cmd_rules(message: types.Message):
         komaru_rules_video,
         caption=f"Привет {user.full_name}\nВот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
     )
+
+
 
 @dp.message(F.text)
 async def message_handler(message: types.Message): 
