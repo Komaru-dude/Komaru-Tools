@@ -1,8 +1,10 @@
 import asyncio, logging, os, db, secrets
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters.command import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
@@ -89,18 +91,68 @@ async def somebody_added(message: types.Message):
             caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
         )
 
+# Состояния /setrank
+class SetRankState(StatesGroup):
+    waiting_for_token = State()
+    waiting_for_user_id = State()
+    waiting_for_rank = State()
+
+TOKENS = {}
+
 @dp.message(Command('setrank'))
-async def cmd_setrank(message: types.Message):
+async def cmd_setrank(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     chat_type = message.chat.type
-    if not chat_type == "private":
-        await message.reply("В целях безопасности данную команду разрешено выполнять только в личных сообщениях")
-    
+
+    if chat_type != "private":
+        await message.reply("В целях безопасности данную команду разрешено выполнять только в личных сообщениях.")
+        return
+
+    # Генерация токена
     lenght = 8
     token = secrets.token_hex(lenght)
-    print(f"Токен для смены ранга: {token}, запросил {user_id}")
-    await message.answer("Токен отправлен в консоль, введите токен для продолжения")
+    TOKENS[user_id] = token
 
+    print(f"Токен для смены ранга: {token}, запросил {user_id}")
+    await message.answer("Введите токен из командной строки для продолжения.")
+    await state.set_state(SetRankState.waiting_for_token)
+
+@dp.message(SetRankState.waiting_for_token)
+async def process_token(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    token = message.text
+
+    # Проверка токена
+    if TOKENS.get(user_id) != token:
+        await message.answer("Неверный токен. Попробуйте снова.")
+        return
+
+    await message.answer("Токен принят. Введите ID пользователя.")
+    await state.set_state(SetRankState.waiting_for_user_id)
+
+@dp.message(SetRankState.waiting_for_user_id)
+async def process_user_id(message: types.Message, state: FSMContext):
+    try:
+        user_id = int(message.text)  # Проверка, что это число
+        await state.update_data(user_id=user_id)
+        await message.answer("Введите новый ранг для пользователя.")
+        await state.set_state(SetRankState.waiting_for_rank)
+    except ValueError:
+        await message.answer("Некорректный ID. Введите числовой ID.")
+
+@dp.message(SetRankState.waiting_for_rank)
+async def process_rank(message: types.Message, state: FSMContext):
+    rank = message.text
+
+    # Получение данных из FSM
+    data = await state.get_data()
+    user_id = data.get("user_id")
+
+    # Здесь нужно выполнить логику смены ранга
+    print(f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
+
+    await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
+    await state.clear()
 
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
