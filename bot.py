@@ -96,8 +96,8 @@ async def cmd_setrank(message: types.Message):
     if not chat_type == "private":
         await message.reply("В целях безопасности данную команду разрешено выполнять только в личных сообщениях")
     
-    
-    token = secrets.token_hex(lenght=8)
+    lenght = 8
+    token = secrets.token_hex(lenght)
     print(f"Токен для смены ранга: {token}, запросил {user_id}")
     await message.answer("Токен отправлен в консоль, введите токен для продолжения")
 
