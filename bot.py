@@ -54,6 +54,8 @@ async def warn_cmd(message: types.Message):
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         reason = message.text.split(' ', 1)[1] if len(message.text.split(' ', 1)) > 1 else "Без причины"
+        db.update_user_warns(user_id, reason)
+        await message.reply(f"Пользователь с ID {user_id} был предупреждён. Причина {reason}")
     else:
         # Разделяем команду и аргументы
         parts = message.text.split(' ', 2)
