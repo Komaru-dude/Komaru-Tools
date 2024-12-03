@@ -121,65 +121,68 @@ def get_user_rank(user_id):
         return None
     return result[0]
 
-def update_user_warns(user_id, reason, punishment_type="warn", duration=None):
+def update_user_warns(user_id, reason):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # Получаем текущую историю
-    cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
+
+    # Получаем текущую историю и количество предупреждений
+    cursor.execute('''SELECT history, warns FROM users WHERE user_id = ?''', (user_id,))
     result = cursor.fetchone()
-    
-    if result is None or not result[0]:
-        history = []  # Если истории нет, создаем новый список
+
+    if result is None:
+        history = []
+        warns = 0  # Если пользователь не существует, начинаем с 0 предупреждений
     else:
-        history = json.loads(result[0])  # Парсим историю как JSON
-    
-    # Добавляем новое наказание
+        history = json.loads(result[0]) if result[0] else []  # Парсим историю, если она есть
+        warns = result[1]  # Получаем количество предупреждений
+
+    # Добавляем новое предупреждение
     punishment = {
-        "type": punishment_type,
+        "type": "warn",
         "reason": reason,
         "timestamp": int(time.time()),  # Время наказания в формате Unix timestamp
     }
-    
-    if punishment_type in ["ban", "mute"] and duration:
-        punishment["duration"] = duration
-        punishment["end_time"] = int(time.time()) + duration  # Время окончания
-    
+
     history.append(punishment)
-    
-    # Обновляем историю в базе данных
+
+    # Обновляем только историю
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
+
+    # Увеличиваем количество предупреждений
+    warns += 1
+    cursor.execute('''UPDATE users SET warns = ? WHERE user_id = ?''', (warns, user_id))
+
     conn.commit()
     conn.close()
 
 def update_user_bans(user_id, reason, duration=None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     # Получаем текущую историю
     cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
     result = cursor.fetchone()
-    
+
     if result is None or not result[0]:
         history = []  # Если истории нет, создаем новый список
     else:
         history = json.loads(result[0])  # Парсим историю как JSON
-    
-    # Добавляем новое наказание (ban)
+
+    # Добавляем наказание типа ban
     punishment = {
         "type": "ban",
         "reason": reason,  # Причина передается как аргумент
         "timestamp": int(time.time()),  # Время начала наказания в формате Unix timestamp
     }
-    
+
     if duration:
         punishment["duration"] = duration
         punishment["end_time"] = int(time.time()) + duration  # Время окончания
     else:
         punishment["end_time"] = None  # Если не указано время окончания, оставляем None
-    
+
     history.append(punishment)
-    
+
     # Обновляем историю в базе данных
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
     conn.commit()
@@ -188,31 +191,31 @@ def update_user_bans(user_id, reason, duration=None):
 def update_user_mutes(user_id, reason, duration=None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     # Получаем текущую историю
     cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
     result = cursor.fetchone()
-    
+
     if result is None or not result[0]:
         history = []  # Если истории нет, создаем новый список
     else:
         history = json.loads(result[0])  # Парсим историю как JSON
-    
-    # Добавляем новое наказание (mute)
+
+    # Добавляем наказание типа mute
     punishment = {
         "type": "mute",
         "reason": reason,  # Причина передается как аргумент
         "timestamp": int(time.time()),  # Время начала наказания в формате Unix timestamp
     }
-    
+
     if duration:
         punishment["duration"] = duration
         punishment["end_time"] = int(time.time()) + duration  # Время окончания
     else:
         punishment["end_time"] = None  # Если не указано время окончания, оставляем None
-    
+
     history.append(punishment)
-    
+
     # Обновляем историю в базе данных
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
     conn.commit()
