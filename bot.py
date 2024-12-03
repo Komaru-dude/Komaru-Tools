@@ -121,10 +121,10 @@ async def cmd_warn_history(message: types.Message):
 @dp.message(Command("rules"))
 async def cmd_rules(message: types.Message):
     user = message.from_user
-    komaru_rules_image = FSInputFile("rules.mp4")
-    await message.reply_photo(
-        komaru_rules_image,
-        caption=f"Привет {user.full_name}, вот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
+    komaru_rules_video = FSInputFile("rules.mp4")
+    await message.reply_video(
+        komaru_rules_video,
+        caption=f"Привет {user.full_name}\nВот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
     )
 
 @dp.message(F.text)
