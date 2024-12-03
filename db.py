@@ -155,7 +155,7 @@ def update_user_warns(user_id, reason):
     conn.commit()
     conn.close()
 
-def update_user_bans(user_id, reason, duration=None):
+def update_user_bans(user_id, reason):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -175,12 +175,6 @@ def update_user_bans(user_id, reason, duration=None):
         "timestamp": int(time.time()),  # Время начала наказания в формате Unix timestamp
     }
 
-    if duration:
-        punishment["duration"] = duration
-        punishment["end_time"] = int(time.time()) + duration  # Время окончания
-    else:
-        punishment["end_time"] = None  # Если не указано время окончания, оставляем None
-
     history.append(punishment)
 
     # Обновляем историю в базе данных
@@ -188,7 +182,7 @@ def update_user_bans(user_id, reason, duration=None):
     conn.commit()
     conn.close()
 
-def update_user_mutes(user_id, reason, duration=None):
+def update_user_mutes(user_id, reason):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -207,12 +201,6 @@ def update_user_mutes(user_id, reason, duration=None):
         "reason": reason,  # Причина передается как аргумент
         "timestamp": int(time.time()),  # Время начала наказания в формате Unix timestamp
     }
-
-    if duration:
-        punishment["duration"] = duration
-        punishment["end_time"] = int(time.time()) + duration  # Время окончания
-    else:
-        punishment["end_time"] = None  # Если не указано время окончания, оставляем None
 
     history.append(punishment)
 
