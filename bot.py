@@ -1,4 +1,4 @@
-import asyncio, logging, os, db
+import asyncio, logging, os, db, secrets
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
@@ -89,7 +89,6 @@ async def somebody_added(message: types.Message):
             caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
         )
 
-
 @dp.message(Command('setrank'))
 async def cmd_setrank(message: types.Message):
     user_id = message.from_user.id
@@ -97,6 +96,11 @@ async def cmd_setrank(message: types.Message):
     if not chat_type == "private":
         await message.reply("В целях безопасности данную команду разрешено выполнять только в личных сообщениях")
     
+    
+    token = secrets.token_hex(lenght=8)
+    print(f"Токен для смены ранга: {token}, запросил {user_id}")
+    await message.answer("Токен отправлен в консоль, введите токен для продолжения")
+
 
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
