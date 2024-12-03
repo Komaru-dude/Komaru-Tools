@@ -138,7 +138,7 @@ async def cmd_warn_history(message: types.Message):
     if not history:  # Если истории нет
         await message.reply("У вас пока нет предупреждений.")
         return
-    
+    print("Формируем ответ")
     # Формируем текст ответа
     warns_count = len(history)
     history_text = "\n".join([f"{i + 1}. {reason}" for i, reason in enumerate(history)])
@@ -146,7 +146,7 @@ async def cmd_warn_history(message: types.Message):
         f"Всего предупреждений: {warns_count}\n"
         f"История:\n{history_text}"
     )
-    
+    print(response)
     await message.reply(response)
 
 # Запуск процесса поллинга новых апдейтов
