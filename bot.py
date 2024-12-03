@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
-from db import get_user_data, update_user_id, update_user_warns, update_count_messges
+import db
 from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta
@@ -39,9 +39,9 @@ async def cmd_info(message: types.Message):
     clickable_name = f"<a href='{profile_link}'>{first_name}</a>"
 
     # Получаем данные из db
-    user_data = get_user_data(user_id)
+    user_data = db.get_user_data(user_id)
     if not user_id == user_data[0]:
-        update_user_id(user_data[0], user_id)
+        db.update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
     await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
@@ -66,7 +66,7 @@ async def warn_cmd(message: types.Message):
                 user = await bot.get_chat_member(message.chat.id, username)
                 user_id = user.user.id  # Получаем ID пользователя
                 # Обновляем количество предупреждений
-                update_user_warns(user_id)
+                db.update_user_warns(user_id, reason)
                 await message.reply(f"Пользователь {username} был предупрежден. Причина: {reason}")
             except Exception as e:
                 await message.reply("Не удалось найти пользователя по данному имени.")
@@ -76,7 +76,7 @@ async def warn_cmd(message: types.Message):
         elif mention_or_id.isdigit():
             user_id = int(mention_or_id)
             # Обновляем количество предупреждений
-            update_user_warns(user_id)
+            db.update_user_warns(user_id, reason)
             await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
         
         else:
@@ -101,7 +101,7 @@ async def cmd_privebradok(message: types.Message):
 async def message_handler(message: types.Message): 
     user_id = message.from_user.id
     text = message.text
-    update_count_messges(user_id)
+    db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
         print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
@@ -129,6 +129,25 @@ def check_ban_words(text: str):
             break  # Если хотя бы одно слово найдено, выходим из цикла
 
     return mute_user
+
+@dp.message(Command('warn_history'))
+async def cmd_warn_history(message: types.Message):
+    user_id = message.from_user.id
+    history = db.get_warns_history(user_id)
+    
+    if not history:  # Если истории нет
+        await message.reply("У вас пока нет предупреждений.")
+        return
+    
+    # Формируем текст ответа
+    warns_count = len(history)
+    history_text = "\n".join([f"{i + 1}. {reason}" for i, reason in enumerate(history)])
+    response = (
+        f"Всего предупреждений: {warns_count}\n"
+        f"История:\n{history_text}"
+    )
+    
+    await message.reply(response)
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
