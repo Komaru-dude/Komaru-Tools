@@ -47,61 +47,35 @@ async def cmd_info(message: types.Message):
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
     await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
 
-async def extract_user_id_from_mention(message: types.Message):
-    # Регулярное выражение для поиска упоминания @username
-    mention_pattern = r'@(\w+)'
-
-    # Ищем упоминание в тексте сообщения
-    match = re.search(mention_pattern, message.text)
-
-    if match:
-        # Если нашли упоминание, получаем имя пользователя
-        username = match.group(1)
-        
-        # Пытаемся получить объект пользователя по имени
-        user = await message.bot.get_chat(username)
-
-        return user.id  # Возвращаем ID пользователя
-
-    return None  # Если упоминание не найдено, возвращаем None
-
 # Обработчик команды /warn
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
-    # Разделяем команду и аргументы
-    parts = message.text.split(' ', 2)
-
-    # Проверяем, правильно ли введены аргументы
-    if len(parts) > 1:
-        mention_or_id = parts[1]  # @username или ID пользователя
-        reason = parts[2] if len(parts) > 2 else "Без причины"
-        
-        # Если упоминание в формате @username
-        if mention_or_id.startswith('@'):
-            
-            try:
-                user_id = extract_user_id_from_mention(mention_or_id)
-                # Обновляем количество предупреждений
-                db.update_user_warns(user_id, reason)
-                await message.reply(f"Пользователь @{mention_or_id} был предупрежден. Причина: {reason}")
-            except Exception as e:
-                await message.reply(f"Не удалось найти пользователя @{mention_or_id}. Ошибка: {str(e)}")
-                logging.error(f"Ошибка при поиске пользователя: {e}")
-        
-        # Если введен ID пользователя
-        elif mention_or_id.isdigit():
-            user_id = int(mention_or_id)
-            try:
-                # Обновляем количество предупреждений
-                db.update_user_warns(user_id, reason)
-                await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
-            except Exception as e:
-                await message.reply(f"Не удалось найти пользователя с ID {user_id}. Ошибка: {str(e)}")
-        
-        else:
-            await message.reply("Некорректный формат ввода. Используйте @username или ID пользователя.")
+    # Проверяем, ответил ли пользователь на сообщение
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        reason = message.text.split(' ', 1)[1] if len(message.text.split(' ', 1)) > 1 else "Без причины"
     else:
-        await message.reply("Синтаксис команды некорректный. Используйте /warn @username или /warn ID.")
+        # Разделяем команду и аргументы
+        parts = message.text.split(' ', 2)
+        
+        # Проверяем, правильно ли введены аргументы
+        if len(parts) > 1:
+            user_id = parts[1]  # ID пользователя
+            reason = parts[2] if len(parts) > 2 else "Без причины"
+            
+            if user_id.isdigit():
+                user_id = int(user_id)
+                try:
+                    # Обновляем количество предупреждений
+                    db.update_user_warns(user_id, reason)
+                    await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
+                except Exception as e:
+                    await message.reply(f"Не удалось найти пользователя с ID {user_id}. Ошибка: {str(e)}")
+            else:
+                await message.reply("Некорректный формат ID пользователя. Используйте ID пользователя.")
+        else:
+            await message.reply("Синтаксис команды некорректный. Используйте /warn ID причина или ответьте на сообщение пользователя с /warn причина.")
+
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
