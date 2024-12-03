@@ -62,12 +62,12 @@ async def warn_cmd(message: types.Message):
             username = mention_or_id[1:]  # Убираем '@' для получения только имени пользователя
             
             try:
-                # Получаем ID пользователя по юзернейму
+                # Получаем информацию о пользователе по юзернейму
                 user = await bot.get_chat_member(message.chat.id, username)
                 user_id = user.user.id  # Получаем ID пользователя
                 # Обновляем количество предупреждений
                 db.update_user_warns(user_id, reason)
-                await message.reply(f"Пользователь {username} был предупрежден. Причина: {reason}")
+                await message.reply(f"Пользователь @{username} был предупрежден. Причина: {reason}")
             except Exception as e:
                 await message.reply(f"Не удалось найти пользователя @{username}. Ошибка: {str(e)}")
                 logging.error(f"Ошибка при поиске пользователя: {e}")
@@ -86,7 +86,6 @@ async def warn_cmd(message: types.Message):
             await message.reply("Некорректный формат ввода. Используйте @username или ID пользователя.")
     else:
         await message.reply("Синтаксис команды некорректный. Используйте /warn @username или /warn ID.")
-
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
