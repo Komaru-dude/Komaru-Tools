@@ -97,6 +97,36 @@ async def somebody_added(message: types.Message):
 async def cmd_privebradok(message: types.Message):
     await message.reply("Приве брадок!")
 
+@dp.message(Command("warns"))
+async def cmd_warn_history(message: types.Message):
+    print("Начало")
+    user_id = message.from_user.id
+    print("Вытаскиваем историю")
+    history = db.get_warns_history(user_id)
+    print("Если истории нет")
+    if not history:  # Если истории нет
+        await message.reply("У вас пока нет предупреждений.")
+        return
+    print("Формируем ответ")
+    # Формируем текст ответа
+    warns_count = len(history)
+    history_text = "\n".join([f"{i + 1}. {reason}" for i, reason in enumerate(history)])
+    response = (
+        f"Всего предупреждений: {warns_count}\n"
+        f"История:\n{history_text}"
+    )
+    print(response)
+    await message.reply(response)
+
+@dp.message(Command("rules"))
+async def cmd_rules(message: types.Message):
+    for user in message.new_chat_members:
+        komaru_rules_image = FSInputFile("rules.mp4")
+        await message.reply_photo(
+            komaru_rules_image,
+            caption=f"Привет {user.full_name}, вот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
+        )
+
 @dp.message(F.text)
 async def message_handler(message: types.Message): 
     user_id = message.from_user.id
@@ -129,37 +159,6 @@ def check_ban_words(text: str):
             break  # Если хотя бы одно слово найдено, выходим из цикла
 
     return mute_user
-
-@dp.message(Command("warns"))
-async def cmd_warn_history(message: types.Message):
-    print("Начало")
-    user_id = message.from_user.id
-    print("Вытаскиваем историю")
-    history = db.get_warns_history(user_id)
-    print("Если истории нет")
-    if not history:  # Если истории нет
-        await message.reply("У вас пока нет предупреждений.")
-        return
-    print("Формируем ответ")
-    # Формируем текст ответа
-    warns_count = len(history)
-    history_text = "\n".join([f"{i + 1}. {reason}" for i, reason in enumerate(history)])
-    response = (
-        f"Всего предупреждений: {warns_count}\n"
-        f"История:\n{history_text}"
-    )
-    print(response)
-    await message.reply(response)
-
-@dp.message(Command("rules"))
-async def cmd_rules(message: types.Message):
-    for user in message.new_chat_members:
-        komaru_rules_image = FSInputFile("rules.mp4")
-        await message.reply_photo(
-            komaru_rules_image,
-            caption=f"Привет {user.full_name}, вот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
-        )
-
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
