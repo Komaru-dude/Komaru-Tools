@@ -43,7 +43,7 @@ async def cmd_info(message: types.Message):
         db.update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
+    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nРанг: {user_data[5]}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
 
 # Обработчик команды /warn
 @dp.message(Command("warn"))
@@ -150,7 +150,7 @@ async def process_rank(message: types.Message, state: FSMContext):
 
     # Здесь нужно выполнить логику смены ранга
     print(f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
-    db.set_rank(rank)
+    db.set_rank(user_id, rank)
     await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
