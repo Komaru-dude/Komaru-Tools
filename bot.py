@@ -132,9 +132,11 @@ def check_ban_words(text: str):
 
 @dp.message(Command('warn_history'))
 async def cmd_warn_history(message: types.Message):
+    print("Начало")
     user_id = message.from_user.id
+    print("Вытаскиваем историю")
     history = db.get_warns_history(user_id)
-    
+    print("Если истории нет")
     if not history:  # Если истории нет
         await message.reply("У вас пока нет предупреждений.")
         return
