@@ -38,16 +38,30 @@ def has_permission(user_id):
     conn.close()
     
     if result is None:
-        return False  # Если пользователь не найден, возвращаем False
+        return False
     
     user_status = result[0]  # Получаем статус пользователя
-    print(f"{user_status} /// {allowed_ranks}")
     return user_status in allowed_ranks  # Проверяем, входит ли ранг в разрешенные
 
 def set_rank(user_id, rank):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''UPDATE users SET rank = ? WHERE user_id = ?''', (rank, user_id))
+    conn.commit()
+    conn.close()
+
+def user_exists(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT 1 FROM users WHERE user_id = ?''', (user_id,))
+    conn.close()
+    exists = cursor.fetchone() is not None
+    return exists
+
+def set_status(user_id, status):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET status = ? WHERE user_id = ?''', (status, user_id))
     conn.commit()
     conn.close()
 

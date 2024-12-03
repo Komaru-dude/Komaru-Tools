@@ -22,7 +22,10 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.reply("iдi нахуй")
+    user_id = message.from_user.id
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
+    await message.reply("Гойда брадок!")
 
 @dp.message(Command("info"))
 async def cmd_info(message: types.Message):
@@ -57,6 +60,8 @@ async def warn_cmd(message: types.Message):
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         reason = message.text.split(' ', 1)[1] if len(message.text.split(' ', 1)) > 1 else "Без причины"
+        if not db.user_exists(user_id):
+            db.add_user(user_id)
         db.update_user_warns(user_id, reason)
         await message.reply(f"Пользователь с ID {user_id} был предупреждён. Причина {reason}")
     else:
@@ -71,6 +76,8 @@ async def warn_cmd(message: types.Message):
             if user_id.isdigit():
                 user_id = int(user_id)
                 try:
+                    if not db.user_exists(user_id):
+                        db.add_user(user_id)
                     # Обновляем количество предупреждений
                     db.update_user_warns(user_id, reason)
                     await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
@@ -85,6 +92,9 @@ async def warn_cmd(message: types.Message):
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
         chat_name = message.chat.title
+        user_id = user.id
+        if not db.user_exists(user_id):
+            db.add_user(user_id)
         xiao_hello_image = FSInputFile("xiao.jpg")
         await message.reply_photo(
             xiao_hello_image,
@@ -102,6 +112,8 @@ TOKENS = {}
 @dp.message(Command('setrank'))
 async def cmd_setrank(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
     chat_type = message.chat.type
 
     if chat_type != "private":
@@ -156,11 +168,16 @@ async def process_rank(message: types.Message, state: FSMContext):
 
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
+    user_id = message.from_user.id
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
     await message.reply("Приве брадок!")
 
 @dp.message(Command("history"))
 async def cmd_history(message: types.Message):
     user_id = message.from_user.id
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
     history = db.get_history(user_id)
     
     if not history:  # Если истории нет
@@ -195,6 +212,9 @@ async def cmd_history(message: types.Message):
 @dp.message(Command("rules"))
 async def cmd_rules(message: types.Message):
     user = message.from_user
+    user_id = user.id
+    if not db.user_exists(user_id):
+        db.add_user(user_id)
     komaru_rules_video = FSInputFile("rules.mp4")
     await message.reply_video(
         komaru_rules_video,
@@ -213,6 +233,8 @@ async def message_handler(message: types.Message):
         new_time = datetime.now() + timedelta(seconds=duration)
         timestamp = new_time.timestamp()
         try:
+            if not db.user_exists(user_id):
+                db.add_user(user_id)
             await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
         except:
