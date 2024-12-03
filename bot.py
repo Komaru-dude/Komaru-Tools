@@ -8,6 +8,7 @@ import db
 from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta
+import re
 
 # Загружаем переменные из dotenv
 load_dotenv()
@@ -23,7 +24,7 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("iдi нахуй")
+    await message.reply("iдi нахуй")
 
 @dp.message(Command("info"))
 async def cmd_info(message: types.Message):
@@ -46,6 +47,24 @@ async def cmd_info(message: types.Message):
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
     await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
 
+async def extract_user_id_from_mention(message: types.Message):
+    # Регулярное выражение для поиска упоминания @username
+    mention_pattern = r'@(\w+)'
+
+    # Ищем упоминание в тексте сообщения
+    match = re.search(mention_pattern, message.text)
+
+    if match:
+        # Если нашли упоминание, получаем имя пользователя
+        username = match.group(1)
+        
+        # Пытаемся получить объект пользователя по имени
+        user = await message.bot.get_chat(username)
+
+        return user.id  # Возвращаем ID пользователя
+
+    return None  # Если упоминание не найдено, возвращаем None
+
 # Обработчик команды /warn
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
@@ -59,17 +78,14 @@ async def warn_cmd(message: types.Message):
         
         # Если упоминание в формате @username
         if mention_or_id.startswith('@'):
-            username = mention_or_id[1:]  # Убираем '@' для получения только имени пользователя
             
             try:
-                # Получаем информацию о пользователе по юзернейму
-                user = await bot.get_chat_member(message.chat.id, username)
-                user_id = user.user.id  # Получаем ID пользователя
+                user_id = extract_user_id_from_mention(mention_or_id)
                 # Обновляем количество предупреждений
                 db.update_user_warns(user_id, reason)
-                await message.reply(f"Пользователь @{username} был предупрежден. Причина: {reason}")
+                await message.reply(f"Пользователь @{mention_or_id} был предупрежден. Причина: {reason}")
             except Exception as e:
-                await message.reply(f"Не удалось найти пользователя @{username}. Ошибка: {str(e)}")
+                await message.reply(f"Не удалось найти пользователя @{mention_or_id}. Ошибка: {str(e)}")
                 logging.error(f"Ошибка при поиске пользователя: {e}")
         
         # Если введен ID пользователя
