@@ -48,7 +48,7 @@ async def cmd_info(message: types.Message):
 async def warn_cmd(message: types.Message):
     # Проверяем, есть ли у пользователя разрешение на "блокировку пользователей"
     user_id = message.from_user.id
-    if not types.ChatPermissions(user_id, "block_users"):
+    if not db.has_permission(user_id):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     # Проверяем, ответил ли пользователь на сообщение
@@ -78,8 +78,6 @@ async def warn_cmd(message: types.Message):
                 await message.reply("Некорректный формат ID пользователя. Используйте ID пользователя.")
         else:
             await message.reply("Синтаксис команды некорректный. Используйте /warn ID причина или ответьте на сообщение пользователя с /warn причина.")
-
-
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):

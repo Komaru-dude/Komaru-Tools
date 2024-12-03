@@ -25,17 +25,36 @@ def create_db():
 if not os.path.exists(DB_PATH):
     create_db()
 
+# Функция для проверки ранга пользователя
+def has_permission(user_id):
+    # Список разрешенных статусов
+    allowed_ranks = ["Администратор", "Модератор", "Владелец"]
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Извлекаем ранг пользователя
+    cursor.execute('''SELECT rank FROM users WHERE user_id = ?''', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result is None:
+        return False  # Если пользователь не найден, возвращаем False
+    
+    user_status = result[0]  # Получаем статус пользователя
+    return user_status in allowed_ranks  # Проверяем, входит ли ранг в разрешенные
+
+def set_rank(user_id, rank):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE rank SET rank = ? WHERE user_id = ?''', (rank, user_id))
+    conn.commit()
+    conn.close()
+
 def add_user(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''INSERT OR IGNORE INTO users (user_id) VALUES (?)''', (user_id,))
-    conn.commit()
-    conn.close()
-
-def set_user_rank(user_id, rank):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''UPDATE users SET rank = ? WHERE user_id = ?''', (rank, user_id))
     conn.commit()
     conn.close()
 
