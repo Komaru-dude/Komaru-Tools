@@ -46,6 +46,10 @@ async def cmd_info(message: types.Message):
 # Обработчик команды /warn
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
+    # Проверяем, есть ли у пользователя разрешение на "блокировку пользователей"
+    if not types.ChatPermissions(user_id, "block_users"):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
     # Проверяем, ответил ли пользователь на сообщение
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
@@ -92,17 +96,13 @@ async def cmd_privebradok(message: types.Message):
 
 @dp.message(Command("history"))
 async def cmd_history(message: types.Message):
-    print("Начало")
     user_id = message.from_user.id
-    print("Вытаскиваем историю")
     history = db.get_history(user_id)
-    print("Если истории нет")
     
     if not history:  # Если истории нет
         await message.reply("У вас пока нет наказаний.")
         return
     
-    print("Формируем ответ")
     # Формируем текст ответа
     history_text = ""
     for i, entry in enumerate(history, start=1):
