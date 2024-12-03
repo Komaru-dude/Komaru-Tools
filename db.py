@@ -29,7 +29,6 @@ if not os.path.exists(DB_PATH):
 def has_permission(user_id):
     # Список разрешенных статусов
     allowed_ranks = ["Администратор", "Модератор", "Владелец"]
-    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -42,6 +41,7 @@ def has_permission(user_id):
         return False  # Если пользователь не найден, возвращаем False
     
     user_status = result[0]  # Получаем статус пользователя
+    print(f"{user_status} /// {allowed_ranks}")
     return user_status in allowed_ranks  # Проверяем, входит ли ранг в разрешенные
 
 def set_rank(user_id, rank):
