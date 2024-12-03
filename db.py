@@ -70,6 +70,18 @@ def get_username(user_id):
     conn.close()
     return result
 
+def get_user_id_by_username(username):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT user_id FROM users WHERE username = ?''', (username,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result is None:
+        return None  # Если юзернейм не найден, возвращаем None
+    
+    return result[0]  # Возвращаем user_id
+
 def set_rank(user_id, rank):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()

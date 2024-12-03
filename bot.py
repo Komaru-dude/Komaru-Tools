@@ -59,37 +59,48 @@ async def warn_cmd(message: types.Message):
     if not db.has_permission(user_id):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
+    
     # Проверяем, ответил ли пользователь на сообщение
     if message.reply_to_message:
-        user_id = message.reply_to_message.from_user.id
+        target_user_id = message.reply_to_message.from_user.id
         reason = message.text.split(' ', 1)[1] if len(message.text.split(' ', 1)) > 1 else "Без причины"
-        if not db.user_exists(user_id):
-            db.add_user(user_id)
-        db.update_user_warns(user_id, reason)
-        await message.reply(f"Пользователь с ID {user_id} был предупреждён. Причина {reason}")
+        if not db.user_exists(target_user_id):
+            db.add_user(target_user_id)
+        db.update_user_warns(target_user_id, reason)
+        await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
     else:
         # Разделяем команду и аргументы
         parts = message.text.split(' ', 2)
         
         # Проверяем, правильно ли введены аргументы
         if len(parts) > 1:
-            user_id = parts[1]  # ID пользователя
+            user_input = parts[1]  # Введён юзернейм или ID
             reason = parts[2] if len(parts) > 2 else "Без причины"
             
-            if user_id.isdigit():
-                user_id = int(user_id)
+            if user_input.startswith('@'):  # Если введён юзернейм
+                username = user_input[1:]  # Убираем "@" в начале
+                # Получаем user_id из базы данных по юзернейму
+                target_user_id = db.get_user_id_by_username(username)
+                if target_user_id:
+                    if not db.user_exists(target_user_id):
+                        db.add_user(target_user_id)
+                    db.update_user_warns(target_user_id, reason)
+                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
+                else:
+                    await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
+            elif user_input.isdigit():  # Если введён ID
+                target_user_id = int(user_input)
                 try:
-                    if not db.user_exists(user_id):
-                        db.add_user(user_id)
-                    # Обновляем количество предупреждений
-                    db.update_user_warns(user_id, reason)
-                    await message.reply(f"Пользователь с ID {user_id} был предупрежден. Причина: {reason}")
+                    if not db.user_exists(target_user_id):
+                        db.add_user(target_user_id)
+                    db.update_user_warns(target_user_id, reason)
+                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
                 except Exception as e:
-                    await message.reply(f"Не удалось найти пользователя с ID {user_id}. Ошибка: {str(e)}")
+                    await message.reply(f"Не удалось найти пользователя с ID {target_user_id}. Ошибка: {str(e)}")
             else:
-                await message.reply("Некорректный формат ID пользователя. Используйте ID пользователя.")
+                await message.reply("Некорректный формат. Используйте /warn @username или /warn ID причина.")
         else:
-            await message.reply("Синтаксис команды некорректный. Используйте /warn ID причина или ответьте на сообщение пользователя с /warn причина.")
+            await message.reply("Синтаксис команды некорректный. Используйте /warn @username причина или /warn ID причина.")
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
@@ -247,15 +258,6 @@ async def message_handler(message: types.Message):
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
         except:
             message.reply("Не удалось ограничить пользователя, сообщите разработчику")
-
-@dp.message(F.photo, F.video)
-async def registrator(message: types.Message):
-    user_id = message.from_user.id
-    username = message.from_user.username
-    if not db.user_exists(user_id):
-        db.add_user(user_id)
-    if not db.user_have_username(user_id):
-        db.add_username(user_id, username)
 
 def check_ban_words(text: str):
     mute_user = False
