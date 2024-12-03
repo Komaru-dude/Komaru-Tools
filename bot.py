@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, types, F, Router
 from aiogram.filters.command import Command
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
@@ -20,12 +20,15 @@ token = os.getenv("BOT_API_TOKEN")
 bot = Bot(token, ParseMode=ParseMode.MARKDOWN_V2)
 # Диспетчер
 dp = Dispatcher()
+# router router router ROUTER
+router1 = Router()
+router2 = Router()
 
-@dp.message(Command("start"))
+@router2.message(Command("start"))
 async def cmd_start(message: types.Message):
     await message.answer("iдi нахуй")
 
-@dp.message(Command("info"))
+@router2.message(Command("info"))
 async def cmd_info(message: types.Message):
     # Достаём информацию о пользователе
     user = message.from_user
@@ -47,7 +50,7 @@ async def cmd_info(message: types.Message):
     await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]} \n\nАйди: {user_id}\nКол-во сообщений: {user_data[7]}\nРепутация: {user_data[4]}\nПрефикс: {user_data[6]}", parse_mode=ParseMode.HTML)
 
 # Обработчик команды /warn
-@dp.message(Command("warn"))
+@router2.message(Command("warn"))
 async def warn_cmd(message: types.Message):
     # Разделяем команду и аргументы
     parts = message.text.split(' ', 2)
@@ -84,7 +87,7 @@ async def warn_cmd(message: types.Message):
     else:
         await message.reply("Синтаксис команды некорректный. При ошибке сообщите разработчику.")
 
-@dp.message(F.new_chat_members)
+@router1.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
         xiao_hello_image = FSInputFile("xiao.jpg")
@@ -93,11 +96,11 @@ async def somebody_added(message: types.Message):
             caption=f"Гойда {user.full_name}, добро пожаловать в кочон подвал.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
         )
 
-@dp.message(Command('privetbradok'))
+@router2.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
     await message.reply("Приве брадок!")
 
-@dp.message(F.text)
+@router1.message(F.text)
 async def message_handler(message: types.Message): 
     user_id = message.from_user.id
     text = message.text
@@ -130,7 +133,7 @@ def check_ban_words(text: str):
 
     return mute_user
 
-@dp.message(Command('warn_history'))
+@router2.message(Command('warn_history'))
 async def cmd_warn_history(message: types.Message):
     print("Начало")
     user_id = message.from_user.id
@@ -153,6 +156,9 @@ async def cmd_warn_history(message: types.Message):
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
+    dp.include_router(router1, priority=1)  # Роутер с более низким числом круче
+    dp.include_router(router2, priority=2)
+
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
