@@ -47,6 +47,7 @@ async def cmd_info(message: types.Message):
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
     # Проверяем, есть ли у пользователя разрешение на "блокировку пользователей"
+    user_id = message.from_user.id
     if not types.ChatPermissions(user_id, "block_users"):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
