@@ -126,8 +126,8 @@ async def cmd_mute(message: types.Message):
 
     # Устанавливаем значение времени
     parts = message.text.split(' ', 3)
-    if len(parts) < 2:
-        await message.reply("Синтаксис команды некорректный. Используйте /mute <время> @username/ID или в ответ на сообщение.")
+    if len(parts) < 2 or not parts[1]:
+        await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
         return
 
     time_str = parts[1]
