@@ -300,7 +300,6 @@ async def cmd_history(message: types.Message):
         f"Всего наказаний: {warns_count}\n"
         f"История наказаний:\n{history_text}"
     )
-    print(response)
     await message.reply(response)
 
 @dp.message(Command("rules"))
