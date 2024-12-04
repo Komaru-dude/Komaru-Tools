@@ -1,6 +1,6 @@
 import asyncio, logging, os, db, secrets
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
 from aiogram.fsm.context import FSMContext
@@ -49,7 +49,7 @@ async def cmd_info(message: types.Message):
         db.update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[3]}/{user_data[4]} \n\nЮзернейм: {user_data[1]}\nАйди: {user_id}\nРанг: {user_data[6]}\nКол-во сообщений: {user_data[8]}\nРепутация: {user_data[5]}\nПрефикс: {user_data[7]}", parse_mode=ParseMode.HTML)
+    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]} \n\nЮзернейм: {user_data[1]}\nАйди: {user_id}\nРанг: {user_data[6]}\nКол-во сообщений: {user_data[8]}\nРепутация: {user_data[5]}\nПрефикс: {user_data[7]}", parse_mode=ParseMode.HTML)
 
 # Обработчик команды /warn
 @dp.message(Command("warn"))
@@ -263,8 +263,11 @@ async def process_rank(message: types.Message, state: FSMContext):
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
     user_id = message.from_user.id
+    username = message.from_user.username
     if not db.user_exists(user_id):
         db.add_user(user_id)
+    if not db.user_have_username(user_id):
+        db.add_username(user_id, username)
     await message.reply("Приве брадок!")
 
 @dp.message(Command("history"))
@@ -283,17 +286,7 @@ async def cmd_history(message: types.Message):
     for i, entry in enumerate(history, start=1):
         punishment_type = entry["type"]
         reason = entry.get("reason", "Без причины")
-        
-        # Если это мут или бан, добавляем информацию о времени действия
-        if punishment_type in ["mute", "ban"]:
-            end_time = entry.get("end_time", None)
-            if end_time:
-                end_time_str = datetime.datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')
-                history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}, Время окончания: {end_time_str}\n"
-            else:
-                history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}, Время действия не указано\n"
-        else:
-            history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}\n"
+        history_text += f"{i}. {punishment_type.capitalize()} - Причина: {reason}.\n"
     
     warns_count = len(history)
     response = (
