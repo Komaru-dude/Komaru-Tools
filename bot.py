@@ -102,6 +102,85 @@ async def warn_cmd(message: types.Message):
         else:
             await message.reply("Синтаксис команды некорректный. Используйте /warn @username причина или /warn ID причина.")
 
+@dp.message(Command("mute"))
+async def cmd_mute(message: types.Message):
+    user_id = message.from_user.id
+
+    # Проверка прав пользователя
+    if not db.has_permission(user_id):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
+
+    def parse_time(time_str):
+        """Парсит время из строки формата 3h, 3m, 3d"""
+        unit = time_str[-1]
+        amount = int(time_str[:-1])
+        if unit == 'h':
+            return timedelta(hours=amount)
+        elif unit == 'm':
+            return timedelta(minutes=amount)
+        elif unit == 'd':
+            return timedelta(days=amount)
+        else:
+            return None
+
+    # Устанавливаем значение времени
+    parts = message.text.split(' ', 3)
+    if len(parts) < 2:
+        await message.reply("Синтаксис команды некорректный. Используйте /mute <время> @username/ID или в ответ на сообщение.")
+        return
+
+    time_str = parts[1]
+    mute_duration = parse_time(time_str)
+    if not mute_duration:
+        await message.reply("Некорректный формат времени. Используйте 3h, 3m или 3d.")
+        return
+
+    until_date = datetime.now() + mute_duration
+
+    # Логика для ответа на сообщение
+    if message.reply_to_message:
+        target_user_id = message.reply_to_message.from_user.id
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+
+    else:
+        if len(parts) < 3:
+            await message.reply("Синтаксис команды некорректный. Используйте /mute <время> @username/ID причина.")
+            return
+
+        user_input = parts[2]
+        reason = parts[3] if len(parts) > 3 else "Без причины"
+
+        # Если введён username
+        if user_input.startswith('@'):
+            username = user_input[1:]
+            target_user_id = db.get_user_id_by_username(username)
+            if not target_user_id:
+                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
+                return
+        elif user_input.isdigit():
+            target_user_id = int(user_input)
+        else:
+            await message.reply("Некорректный формат. Используйте /mute <время> @username/ID причина.")
+            return
+
+    # Проверка пользователя в базе данных
+    if not db.user_exists(target_user_id):
+        db.add_user(target_user_id)
+
+    # Логика применения мута
+    try:
+        await bot.restrict_chat_member(
+            message.chat.id,
+            target_user_id,
+            types.ChatPermissions(can_send_messages=False),
+            until_date=until_date
+        )
+        db.update_user_mutes(target_user_id, reason)
+        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}. Причина: {reason}")
+    except:
+        await message.reply(f"Не удалось замьютить пользователя.")
+
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
