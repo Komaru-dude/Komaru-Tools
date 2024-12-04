@@ -160,13 +160,15 @@ def update_user_bans(user_id, reason):
     cursor = conn.cursor()
 
     # Получаем текущую историю
-    cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
+    cursor.execute('''SELECT history, bans FROM users WHERE user_id = ?''', (user_id,))
     result = cursor.fetchone()
 
     if result is None or not result[0]:
         history = []  # Если истории нет, создаем новый список
+        bans = 0
     else:
         history = json.loads(result[0])  # Парсим историю как JSON
+        bans = result[1]
 
     # Добавляем наказание типа ban
     punishment = {
@@ -176,6 +178,10 @@ def update_user_bans(user_id, reason):
     }
 
     history.append(punishment)
+
+    # Увеличиваем количество банов
+    bans += 1
+    cursor.execute('''UPDATE users SET bans = ? WHERE user_id = ?''', (bans, user_id))
 
     # Обновляем историю в базе данных
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
@@ -187,13 +193,15 @@ def update_user_mutes(user_id, reason):
     cursor = conn.cursor()
 
     # Получаем текущую историю
-    cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
+    cursor.execute('''SELECT history, mutes FROM users WHERE user_id = ?''', (user_id,))
     result = cursor.fetchone()
 
     if result is None or not result[0]:
         history = []  # Если истории нет, создаем новый список
+        mutes = 0
     else:
         history = json.loads(result[0])  # Парсим историю как JSON
+        mutes = result[1]
 
     # Добавляем наказание типа mute
     punishment = {
@@ -201,6 +209,10 @@ def update_user_mutes(user_id, reason):
         "reason": reason,  # Причина передается как аргумент
         "timestamp": int(time.time()),  # Время начала наказания в формате Unix timestamp
     }
+
+    # Увеличиваем количество мутов
+    mutes += 1
+    cursor.execute('''UPDATE users SET mutes = ? WHERE user_id = ?''', (mutes, user_id))
 
     history.append(punishment)
 
