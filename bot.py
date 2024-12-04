@@ -113,45 +113,46 @@ async def cmd_mute(message: types.Message):
 
     def parse_time(time_str):
         """Парсит время из строки формата 3h, 3m, 3d"""
-        unit = time_str[-1]
-        amount = int(time_str[:-1])
-        if unit == 'h':
-            return timedelta(hours=amount)
-        elif unit == 'm':
-            return timedelta(minutes=amount)
-        elif unit == 'd':
-            return timedelta(days=amount)
-        else:
+        try:
+            unit = time_str[-1]
+            amount = int(time_str[:-1])
+            if unit == 'h':
+                return timedelta(hours=amount)
+            elif unit == 'm':
+                return timedelta(minutes=amount)
+            elif unit == 'd':
+                return timedelta(days=amount)
+            else:
+                return None
+        except (ValueError, IndexError):
             return None
 
-    # Устанавливаем значение времени
+    # Разбиваем текст команды
     parts = message.text.split(' ', 3)
-    if len(parts) < 2 or not parts[1]:
+
+    # Проверка на наличие времени
+    if len(parts) < 2 or not parse_time(parts[1]):
         await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
         return
 
     time_str = parts[1]
     mute_duration = parse_time(time_str)
-    if not mute_duration:
-        await message.reply("Некорректный формат времени. Используйте 3h, 3m или 3d.")
-        return
-
     until_date = datetime.now() + mute_duration
 
-    # Логика для ответа на сообщение
+    # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
         reason = parts[2] if len(parts) > 2 else "Без причины"
 
     else:
         if len(parts) < 3:
-            await message.reply("Синтаксис команды некорректный. Используйте /mute <время> @username/ID причина.")
+            await message.reply("Ошибка: необходимо указать username или ID после времени.")
             return
 
         user_input = parts[2]
         reason = parts[3] if len(parts) > 3 else "Без причины"
 
-        # Если введён username
+        # Если указан username
         if user_input.startswith('@'):
             username = user_input[1:]
             target_user_id = db.get_user_id_by_username(username)
@@ -168,7 +169,7 @@ async def cmd_mute(message: types.Message):
     if not db.user_exists(target_user_id):
         db.add_user(target_user_id)
 
-    # Логика применения мута
+    # Применение мута
     try:
         await bot.restrict_chat_member(
             message.chat.id,
