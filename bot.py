@@ -113,6 +113,10 @@ async def cmd_mute(message: types.Message):
     # Разбиваем текст команды
     parts = message.text.split(' ', 3)
 
+    time_str = parts[1]
+    mute_duration = parse_time(time_str)
+    until_date = datetime.now() + mute_duration
+
     # Проверка на наличие времени
     if len(parts) < 2 or not parse_time(parts[1]):
         await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
@@ -147,10 +151,6 @@ async def cmd_mute(message: types.Message):
     # Проверка пользователя в базе данных
     if not db.user_exists(target_user_id):
         db.add_user(target_user_id)
-
-    time_str = parts[1]
-    mute_duration = parse_time(time_str)
-    until_date = datetime.now() + mute_duration
 
     def parse_time(time_str):
         """Парсит время из строки формата 3h, 3m, 3d"""
