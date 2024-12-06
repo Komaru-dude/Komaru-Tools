@@ -1,6 +1,6 @@
 import asyncio, logging, os, db, secrets, re
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
 from aiogram.fsm.context import FSMContext
@@ -397,7 +397,7 @@ async def process_rank(message: types.Message, state: FSMContext):
     await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
-@dp.message(Command('cancel'), state="*")
+@dp.message(Command('cancel'), StateFilter("*"))
 async def cmd_cancel(message: types.Message, state: FSMContext):
     await state.clear()
     await message.reply("Действие отменено")
