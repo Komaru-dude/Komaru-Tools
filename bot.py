@@ -288,6 +288,33 @@ async def cmd_unmute(message: types.Message):
     except Exception as e:
         await message.reply(f"Не удалось снять мьют. Ошибка: {e}")
 
+@dp.message(Command('unban'))
+async def cmd_unmute(message: types.Message):
+    user_id = message.from_user.id
+    text = message.text
+    parts = text.split(maxsplit=1)
+    if not db.has_permission(user_id):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
+    if len(parts) < 2:
+        await message.reply("Не указано имя пользователя/ID")
+        return
+    
+    target_input = parts[1]
+
+    if target_input.startswith("@"):
+        target_id = db.get_user_id_by_username(target_input[1:])
+    elif text.isdigit():
+        target_id = int(target_input)
+    else:
+        await message.reply("Некорректный формат. Используйте /unban <username/ID>.")
+        return
+    try:
+        await bot.unban_chat_member(message.chat.id, target_id)
+        await message.reply(f"Пользователь {target_id} разбанен.")
+    except Exception as e:
+        await message.reply(f"Не удалось снять бан. Ошибка: {e}")
+
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
