@@ -283,7 +283,8 @@ async def cmd_unmute(message: types.Message):
         await message.reply("Некорректный формат. Используйте /unmute <username/ID>.")
         return
     try:
-        await bot.restrict_chat_member(message.chat.id, target_id, types.ChatPermissions(can_send_messages=True), until_date=None)
+        await bot.restrict_chat_member(message.chat.id, target_id, types.ChatPermissions(can_send_messages=True, can_send_audios=True, can_send_documents=True, can_send_other_messages=True, can_send_photos=True, can_send_polls=True, can_send_video_notes=True, can_send_videos=True, can_send_voice_notes=True), until_date=None)
+        await message.reply(f"Пользователь {target_id} размучен.")
     except Exception as e:
         await message.reply(f"Не удалось снять мьют. Ошибка: {e}")
 
