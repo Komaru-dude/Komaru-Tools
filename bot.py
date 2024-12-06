@@ -397,7 +397,7 @@ async def process_rank(message: types.Message, state: FSMContext):
     await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
-@dp.message(Command('cancel'))
+@dp.message(Command('cancel'), state="*")
 async def cmd_cancel(message: types.Message, state: FSMContext):
     await state.clear()
     await message.reply("Действие отменено")
