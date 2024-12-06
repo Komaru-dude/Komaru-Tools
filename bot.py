@@ -148,6 +148,10 @@ async def cmd_mute(message: types.Message):
     if not db.user_exists(target_user_id):
         db.add_user(target_user_id)
 
+    time_str = parts[1]
+    mute_duration = parse_time(time_str)
+    until_date = datetime.now() + mute_duration
+
     def parse_time(time_str):
         """Парсит время из строки формата 3h, 3m, 3d"""
         try:
@@ -163,11 +167,7 @@ async def cmd_mute(message: types.Message):
                 return None
         except (ValueError, IndexError):
             return None
-
-    time_str = parts[1]
-    mute_duration = parse_time(time_str)
-    until_date = datetime.now() + mute_duration
-
+        
     # Применение мута
     try:
         await bot.restrict_chat_member(
