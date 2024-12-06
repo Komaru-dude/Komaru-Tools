@@ -113,15 +113,32 @@ async def cmd_mute(message: types.Message):
     # Разбиваем текст команды
     parts = message.text.split(' ', 3)
 
-    time_str = parts[1]
-    mute_duration = parse_time(time_str)
-    until_date = datetime.now() + mute_duration
+    # Функция для парсинга времени
+    def parse_time(time_str):
+        """Парсит время из строки формата 3h, 3m или 3d"""
+        try:
+            unit = time_str[-1]
+            amount = int(time_str[:-1])
+            if unit == 'h':
+                return timedelta(hours=amount)
+            elif unit == 'm':
+                return timedelta(minutes=amount)
+            elif unit == 'd':
+                return timedelta(days=amount)
+            else:
+                return None
+        except (ValueError, IndexError):
+            return None
 
     # Проверка на наличие времени
     if len(parts) < 2 or not parse_time(parts[1]):
         await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
         return
-    
+
+    time_str = parts[1]
+    mute_duration = parse_time(time_str)
+    until_date = datetime.now() + mute_duration
+
     # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
@@ -152,22 +169,6 @@ async def cmd_mute(message: types.Message):
     if not db.user_exists(target_user_id):
         db.add_user(target_user_id)
 
-    def parse_time(time_str):
-        """Парсит время из строки формата 3h, 3m, 3d"""
-        try:
-            unit = time_str[-1]
-            amount = int(time_str[:-1])
-            if unit == 'h':
-                return timedelta(hours=amount)
-            elif unit == 'm':
-                return timedelta(minutes=amount)
-            elif unit == 'd':
-                return timedelta(days=amount)
-            else:
-                return None
-        except (ValueError, IndexError):
-            return None
-        
     # Применение мута
     try:
         await bot.restrict_chat_member(
@@ -178,8 +179,8 @@ async def cmd_mute(message: types.Message):
         )
         db.update_user_mutes(target_user_id, reason)
         await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}. Причина: {reason}")
-    except:
-        await message.reply(f"Не удалось замьютить пользователя.")
+    except Exception as e:
+        await message.reply(f"Не удалось замьютить пользователя. Ошибка: {e}")
 
 @dp.message(Command('ban'))
 async def cmd_ban(message: types.Message):
