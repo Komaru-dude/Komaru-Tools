@@ -85,6 +85,15 @@ async def warn_cmd(message: types.Message):
                         db.add_user(target_user_id)
                     db.update_user_warns(target_user_id, reason)
                     await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
+                    user_data = db.get_user_data(target_user_id)
+                    warns = user_data[2]
+                    warn_limit = user_data[10]
+                    if warns > warn_limit:
+                        until_date = datetime.now() + timedelta(hours=2)
+                        await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
+                        db.update_user_mutes(target_user_id)
+                        db.update_user_warn_limit(target_user_id, 3)
+                        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
                 else:
                     await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
             elif user_input.isdigit():  # Если введён ID
@@ -99,7 +108,7 @@ async def warn_cmd(message: types.Message):
                     warn_limit = user_data[10]
                     if warns > warn_limit:
                         until_date = datetime.now() + timedelta(hours=2)
-                        bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
+                        await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
                         db.update_user_mutes(target_user_id)
                         db.update_user_warn_limit(target_user_id, 3)
                         await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
