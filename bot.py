@@ -1,4 +1,4 @@
-import asyncio, logging, os, db, secrets
+import asyncio, logging, os, db, secrets, re
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
@@ -310,7 +310,7 @@ async def cmd_unmute(message: types.Message):
         await message.reply("Некорректный формат. Используйте /unban <username/ID>.")
         return
     try:
-        await bot.unban_chat_member(message.chat.id, target_id)
+        await bot.unban_chat_member(message.chat.id, target_id, only_if_banned=True)
         await message.reply(f"Пользователь {target_id} разбанен.")
     except Exception as e:
         await message.reply(f"Не удалось снять бан. Ошибка: {e}")
@@ -472,9 +472,12 @@ def check_ban_words(text: str):
     with open(ban_words_file, 'r', encoding='utf-8') as f:
         ban_words = f.read().splitlines()  # Читаем строки и убираем символы новой строки
 
-    # Проверяем, есть ли бан-слова в тексте
+    # Разбиваем текст на слова с использованием регулярных выражений
+    words_in_text = re.findall(r'\b\w+\b', text.lower())  # \b обозначает границы слов
+
+    # Проверяем наличие бан-слов среди слов в тексте
     for word in ban_words:
-        if word.lower() in text.lower():  # Сравниваем без учета регистра
+        if word.lower() in words_in_text:
             mute_user = True
             break  # Если хотя бы одно слово найдено, выходим из цикла
 
