@@ -193,13 +193,7 @@ async def cmd_ban(message: types.Message):
     # Разбиваем текст команды
     parts = message.text.split(' ', 3)
 
-    # Проверка на наличие времени
-    if len(parts) < 2:
-        await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
-        return
-
-    time_str = parts[1]
-
+    # Парсинг времени
     def parse_time(time_str):
         """Парсит время из строки формата 3h, 3m, 3d"""
         try:
@@ -216,24 +210,30 @@ async def cmd_ban(message: types.Message):
         except (ValueError, IndexError):
             return None
 
-    mute_duration = parse_time(time_str)
-    if not mute_duration:
-        await message.reply("Ошибка: неверный формат времени. Используйте 3h, 3m или 3d.")
-        return
-
-    until_date = datetime.now() + mute_duration
+    # Проверка времени
+    if len(parts) > 1:
+        time_str = parts[1]
+        ban_duration = parse_time(time_str)
+        if ban_duration:
+            until_date = datetime.now() + ban_duration
+        else:
+            await message.reply("Ошибка: неверный формат времени. Используйте 3h, 3m или 3d.")
+            return
+    else:
+        # Если время не указано — бан навсегда
+        until_date = None
 
     # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
         reason = parts[2] if len(parts) > 2 else "Без причины"
     else:
-        if len(parts) < 3:
-            await message.reply("Ошибка: необходимо указать username или ID после времени.")
+        if len(parts) < 2:
+            await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
             return
 
-        user_input = parts[2]
-        reason = parts[3] if len(parts) > 3 else "Без причины"
+        user_input = parts[1]
+        reason = parts[2] if len(parts) > 2 else "Без причины"
 
         # Если указан username
         if user_input.startswith('@'):
@@ -252,9 +252,39 @@ async def cmd_ban(message: types.Message):
     try:
         await bot.ban_chat_member(chat_id=message.chat.id, user_id=target_user_id, until_date=until_date)
         db.update_user_bans(target_user_id, reason)
-        await message.reply(f"Пользователь с ID {target_user_id} был забанен на {time_str}. Причина: {reason}")
+        if until_date:
+            duration = f"на {ban_duration.total_seconds() // 60} минут"
+        else:
+            duration = "навсегда"
+        await message.reply(f"Пользователь с ID {target_user_id} был забанен {duration}. Причина: {reason}")
     except Exception as e:
         await message.reply(f"Не удалось забанить пользователя. Ошибка: {e}")
+
+@dp.message(Command('unmute'))
+async def cmd_unmute(message: types.Message):
+    user_id = message.from_user.id
+    text = message.text
+    parts = text.split(maxsplit=1)
+    if not db.has_permission(user_id):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
+    if len(parts) < 2:
+        await message.reply("Не указано имя пользователя/ID")
+        return
+    
+    target_input = parts[1]
+
+    if target_input.startswith("@"):
+        target_id = db.get_user_id_by_username(target_input[1:])
+    elif text.isdigit():
+        target_id = int(target_input)
+    else:
+        await message.reply("Некорректный формат. Используйте /unmute <username/ID>.")
+        return
+    try:
+        await bot.restrict_chat_member(message.chat.id, target_id, types.ChatPermissions(can_send_messages=True), until_date=None)
+    except Exception as e:
+        await message.reply(f"Не удалось снять мьют. Ошибка: {e}")
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
