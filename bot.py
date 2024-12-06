@@ -399,8 +399,11 @@ async def process_rank(message: types.Message, state: FSMContext):
 
 @dp.message(Command('cancel'), StateFilter("*"))
 async def cmd_cancel(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.reply("Действие отменено")
+    if await state.get_state() is not None:
+        await state.clear()
+        await message.reply("Действие отменено. Состояние сброшено.")
+    else:
+        await message.reply("Нет активного действия для отмены.")
 
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
