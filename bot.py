@@ -110,6 +110,14 @@ async def cmd_mute(message: types.Message):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
+    # Разбиваем текст команды
+    parts = message.text.split(' ', 3)
+
+    # Проверка на наличие времени
+    if len(parts) < 2 or not parse_time(parts[1]):
+        await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
+        return
+    
     # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
@@ -155,14 +163,6 @@ async def cmd_mute(message: types.Message):
                 return None
         except (ValueError, IndexError):
             return None
-
-    # Разбиваем текст команды
-    parts = message.text.split(' ', 3)
-
-    # Проверка на наличие времени
-    if len(parts) < 2 or not parse_time(parts[1]):
-        await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
-        return
 
     time_str = parts[1]
     mute_duration = parse_time(time_str)
