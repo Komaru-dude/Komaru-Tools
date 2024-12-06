@@ -109,6 +109,32 @@ async def cmd_mute(message: types.Message):
     if not db.has_permission(user_id):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
+    
+    # Проверка: ответ на сообщение или указан username/ID
+    if message.reply_to_message:
+        target_user_id = message.reply_to_message.from_user.id
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+
+    else:
+        if len(parts) < 3:
+            await message.reply("Ошибка: необходимо указать username или ID после времени.")
+            return
+
+        user_input = parts[2]
+        reason = parts[3] if len(parts) > 3 else "Без причины"
+
+        # Если указан username
+        if user_input.startswith('@'):
+            username = user_input[1:]
+            target_user_id = db.get_user_id_by_username(username)
+            if not target_user_id:
+                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
+                return
+        elif user_input.isdigit():
+            target_user_id = int(user_input)
+        else:
+            await message.reply("Некорректный формат. Используйте /mute <время> @username/ID причина.")
+            return
 
     # Проверка пользователя в базе данных
     if not db.user_exists(target_user_id):
@@ -141,32 +167,6 @@ async def cmd_mute(message: types.Message):
     time_str = parts[1]
     mute_duration = parse_time(time_str)
     until_date = datetime.now() + mute_duration
-
-    # Проверка: ответ на сообщение или указан username/ID
-    if message.reply_to_message:
-        target_user_id = message.reply_to_message.from_user.id
-        reason = parts[2] if len(parts) > 2 else "Без причины"
-
-    else:
-        if len(parts) < 3:
-            await message.reply("Ошибка: необходимо указать username или ID после времени.")
-            return
-
-        user_input = parts[2]
-        reason = parts[3] if len(parts) > 3 else "Без причины"
-
-        # Если указан username
-        if user_input.startswith('@'):
-            username = user_input[1:]
-            target_user_id = db.get_user_id_by_username(username)
-            if not target_user_id:
-                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
-                return
-        elif user_input.isdigit():
-            target_user_id = int(user_input)
-        else:
-            await message.reply("Некорректный формат. Используйте /mute <время> @username/ID причина.")
-            return
 
     # Применение мута
     try:
