@@ -332,19 +332,6 @@ async def cmd_unmute(message: types.Message):
     except Exception as e:
         await message.reply(f"Не удалось снять бан. Ошибка: {e}")
 
-@dp.message(F.new_chat_members)
-async def somebody_added(message: types.Message):
-    for user in message.new_chat_members:
-        chat_name = message.chat.title
-        user_id = user.id
-        if not db.user_exists(user_id):
-            db.add_user(user_id)
-        xiao_hello_image = FSInputFile("xiao.jpg")
-        await message.reply_photo(
-            xiao_hello_image,
-            caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
-        )
-
 # Состояния /setrank
 class SetRankState(StatesGroup):
     waiting_for_token = State()
@@ -410,21 +397,18 @@ async def process_rank(message: types.Message, state: FSMContext):
     await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
+@dp.message(Command('cancel'))
+async def cmd_cancel(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.reply("Действие отменено")
+
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
-    user_id = message.from_user.id
-    username = message.from_user.username
-    if not db.user_exists(user_id):
-        db.add_user(user_id)
-    if not db.user_have_username(user_id):
-        db.add_username(user_id, username)
     await message.reply("Приве брадок!")
 
 @dp.message(Command("history"))
 async def cmd_history(message: types.Message):
     user_id = message.from_user.id
-    if not db.user_exists(user_id):
-        db.add_user(user_id)
     history = db.get_history(user_id)
     
     if not history:  # Если истории нет
@@ -449,13 +433,24 @@ async def cmd_history(message: types.Message):
 async def cmd_rules(message: types.Message):
     user = message.from_user
     user_id = user.id
-    if not db.user_exists(user_id):
-        db.add_user(user_id)
     komaru_rules_video = FSInputFile("rules.mp4")
     await message.reply_video(
         komaru_rules_video,
         caption=f"Привет {user.full_name}\nВот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
     )
+
+@dp.message(F.new_chat_members)
+async def somebody_added(message: types.Message):
+    for user in message.new_chat_members:
+        chat_name = message.chat.title
+        user_id = user.id
+        if not db.user_exists(user_id):
+            db.add_user(user_id)
+        xiao_hello_image = FSInputFile("xiao.jpg")
+        await message.reply_photo(
+            xiao_hello_image,
+            caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
+        )
 
 @dp.message(F.text)
 async def message_handler(message: types.Message): 
@@ -470,8 +465,7 @@ async def message_handler(message: types.Message):
     mute_user = check_ban_words(text)
     if mute_user:
         print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
-        duration = 7200
-        new_time = datetime.now() + timedelta(seconds=duration)
+        new_time = datetime.now() + timedelta(hours=2)
         timestamp = new_time.timestamp()
         try:
             if not db.user_exists(user_id):
