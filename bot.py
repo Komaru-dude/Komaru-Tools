@@ -2,7 +2,7 @@ import asyncio, logging, os, db, secrets, re
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command, StateFilter
 from aiogram.enums import ParseMode
-from aiogram.types import FSInputFile
+from aiogram.types import FSInputFile, Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.exceptions import TelegramBadRequest
@@ -50,7 +50,14 @@ async def cmd_info(message: types.Message):
         db.update_user_id(user_data[0], user_id)
     
     # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"Информация о пользователе: {clickable_name}\nПреды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]} \n\nЮзернейм: {user_data[1]}\nАйди: {user_id}\nРанг: {user_data[6]}\nКол-во сообщений: {user_data[8]}\nРепутация: {user_data[5]}\nПрефикс: {user_data[7]}", parse_mode=ParseMode.HTML)
+    await message.reply(f"""Информация о пользователе: {clickable_name}\n
+                        Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]} \n\n
+                        Юзернейм: {user_data[1]}\n
+                        Айди: {user_id}\n
+                        Ранг: {user_data[6]}\n
+                        Кол-во сообщений: {user_data[8]}\n
+                        Репутация: {user_data[5]}\n
+                        Префикс: {user_data[7]}""", parse_mode=ParseMode.HTML)
 
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
@@ -67,7 +74,8 @@ async def warn_cmd(message: types.Message):
         if not db.user_exists(target_user_id):
             db.add_user(target_user_id)
         db.update_user_warns(target_user_id, reason)
-        await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
+        await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.
+                             Причина: {reason}")
     else:
         # Разделяем команду и аргументы
         parts = message.text.split(' ', 2)
@@ -85,7 +93,8 @@ async def warn_cmd(message: types.Message):
                     if not db.user_exists(target_user_id):
                         db.add_user(target_user_id)
                     db.update_user_warns(target_user_id, reason)
-                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
+                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.
+                                         Причина: {reason}")
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
                     warn_limit = user_data[10]
@@ -103,7 +112,8 @@ async def warn_cmd(message: types.Message):
                     if not db.user_exists(target_user_id):
                         db.add_user(target_user_id)
                     db.update_user_warns(target_user_id, reason)
-                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён. Причина: {reason}")
+                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.
+                                         Причина: {reason}")
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
                     warn_limit = user_data[10]
@@ -114,11 +124,13 @@ async def warn_cmd(message: types.Message):
                         db.update_user_warn_limit(target_user_id, 3)
                         await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
                 except Exception as e:
-                    await message.reply(f"Не удалось найти пользователя с ID {target_user_id}. Ошибка: {str(e)}")
+                    await message.reply(f"Не удалось найти пользователя с ID {target_user_id}.
+                                         Ошибка: {str(e)}")
             else:
                 await message.reply("Некорректный формат. Используйте /warn @username или /warn ID причина.")
         else:
-            await message.reply("Синтаксис команды некорректный. Используйте /warn @username причина или /warn ID причина.")
+            await message.reply("""Синтаксис команды некорректный.
+                                 Используйте /warn @username причина или /warn ID причина.""")
 
 @dp.message(Command("mute"))
 async def cmd_mute(message: types.Message):
@@ -196,7 +208,8 @@ async def cmd_mute(message: types.Message):
             until_date=until_date
         )
         db.update_user_mutes(target_user_id, reason)
-        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}. Причина: {reason}")
+        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}. 
+                            Причина: {reason}")
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя. Ошибка: {e}")
 
@@ -379,23 +392,36 @@ async def process_user_id(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)  # Проверка, что это число
         await state.update_data(user_id=user_id)
-        await message.answer("Введите новый ранг для пользователя.")
+        await message.answer("Выберите новый ранг для пользователя.")
         await state.set_state(SetRankState.waiting_for_rank)
     except ValueError:
         await message.answer("Некорректный ID. Введите числовой ID.")
 
 @dp.message(SetRankState.waiting_for_rank)
 async def process_rank(message: types.Message, state: FSMContext):
-    rank = message.text
+    # Создание инлайн-кнопок для выбора ранга
+    ranks = ["Владелец", "Администратор", "Модератор", "Участник"]  # Пример доступных рангов
+    keyboard = InlineKeyboardMarkup(row_width=2)  # Два ряда кнопок
+    buttons = [InlineKeyboardButton(text=rank, callback_data=rank) for rank in ranks]
+    keyboard.add(*buttons)
 
-    # Получение данных из FSM
+    await message.answer("Выберите новый ранг для пользователя:", reply_markup=keyboard)
+    await state.set_state(SetRankState.waiting_for_rank)  # Ожидаем выбор пользователя
+
+@dp.callback_query(SetRankState.waiting_for_rank)
+async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMContext):
+    rank = callback_query.data  # Получаем выбранный ранг
+
+    # Получаем данные из FSM
     data = await state.get_data()
     user_id = data.get("user_id")
 
-    # Здесь нужно выполнить логику смены ранга
+    # Логика смены ранга
     print(f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
     db.set_rank(user_id, rank)
-    await message.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
+    
+    # Отправляем подтверждение
+    await callback_query.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
 @dp.message(Command('cancel'), StateFilter("*"))
@@ -440,7 +466,13 @@ async def cmd_rules(message: types.Message):
     komaru_rules_video = FSInputFile("rules.mp4")
     await message.reply_video(
         komaru_rules_video,
-        caption=f"Привет {user.full_name}\nВот краткий список правил чата:\n\nНе твори хуйни\n\nСписок команд:\n\n/info - Посмотреть информацию о себе\n/privetbradok - Приве брадок\n\nЫгыгыгыг"
+        caption=f"""Привет {user.full_name}\n
+        Вот краткий список правил чата:\n\n
+        Не твори хуйни\n\n
+        Список команд:\n\n
+        /info - Посмотреть информацию о себе\n
+        /privetbradok - Приве брадок\n\n
+        Ыгыгыгыг"""
     )
 
 @dp.message(F.new_chat_members)
@@ -486,6 +518,8 @@ async def message_handler(message: types.Message):
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
         except TelegramBadRequest as e:
             message.reply(f"Не удалось ограничить пользователя из-за ошибки телеграмма: {e}")
+        except:
+            message.reply("Не удалось ограничить пользователя.")
 
 def check_ban_words(text: str):
     mute_user = False
