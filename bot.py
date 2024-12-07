@@ -405,14 +405,14 @@ async def process_user_id(message: types.Message, state: FSMContext):
 @dp.message(SetRankState.waiting_for_rank)
 async def process_rank(message: types.Message, state: FSMContext):
     # Список доступных рангов
-    ranks = ["Admin", "Moderator", "User", "Guest"]
+    ranks = ["Владелец", "Администратор", "Участник", "Замьючен", "Заблокирован"]
     
     # Создание кнопок для каждого ранга
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=rank, callback_data=rank) for rank in ranks]
     ])
 
-    await message.answer("Выберите новый ранг для пользователя:", reply_markup=keyboard)
+    await message.reply("Выберите новый ранг для пользователя:", reply_markup=keyboard)
     await state.set_state(SetRankState.waiting_for_rank)  # Ожидаем выбор пользователя
 
 @dp.callback_query(SetRankState.waiting_for_rank)
@@ -467,13 +467,11 @@ async def cmd_history(message: types.Message):
     await message.reply(response)
 
 @dp.message(Command("rules"))
-async def cmd_rules(message: types.Message):
-    user = message.from_user
-    user_id = user.id
+async def cmd_rules(message: Message):
     komaru_rules_video = FSInputFile("rules.mp4")
     await message.reply_video(
         komaru_rules_video,
-        caption=f"""Привет {user.full_name}\n
+        caption=f"""Привет {message.from_user.full_name}\n
         Вот краткий список правил чата:\n\n
         Не твори хуйни\n\n
         Список команд:\n\n
@@ -498,7 +496,7 @@ async def somebody_added(message: types.Message):
         await message.reply_photo(
             xiao_hello_image,
             caption=f"""Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\n
-            Перед тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\n
+            Перед тем как начать общение прочитай правила (/rules), чтобы не получить пизды от Кончона.\n\n
             Не забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\n
             Приятного качанения в нашем кочон подвале 😘"""
         )
