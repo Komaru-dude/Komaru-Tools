@@ -18,7 +18,6 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
 # Состояния /setrank
 class SetRankState(StatesGroup):
     waiting_for_token = State()
-    waiting_for_user_id = State()
     waiting_for_rank = State()
 
 TOKENS = {}
@@ -54,20 +53,16 @@ async def process_token(message: types.Message, state: FSMContext):
         return
 
     await message.answer("Токен принят. Введите ID пользователя.")
-    await state.set_state(SetRankState.waiting_for_user_id)
+    await state.set_state(SetRankState.waiting_for_rank)
 
-@rght_router.message(SetRankState.waiting_for_user_id)
-async def process_user_id(message: types.Message, state: FSMContext):
+@rght_router.message(SetRankState.waiting_for_rank)
+async def process_rank(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)  # Проверка, что это число
         await state.update_data(user_id=user_id)
         await message.answer("ID корректный.")
-        await state.set_state(SetRankState.waiting_for_rank)
     except ValueError:
         await message.answer("Некорректный ID. Введите числовой ID.")
-
-@rght_router.message(SetRankState.waiting_for_rank)
-async def process_rank(message: types.Message, state: FSMContext):
     # Список доступных рангов
     ranks = ["Владелец", "Администратор", "Модератор", "Участник", "Замьючен", "Заблокирован"]
     
