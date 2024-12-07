@@ -208,8 +208,8 @@ async def cmd_mute(message: types.Message):
             until_date=until_date
         )
         db.update_user_mutes(target_user_id, reason)
-        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}. 
-                            Причина: {reason}")
+        await message.reply(f"""Пользователь с ID {target_user_id} был замьючен на {time_str}. 
+                            Причина: {reason}""")
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя. Ошибка: {e}")
 
@@ -288,7 +288,8 @@ async def cmd_ban(message: types.Message):
             duration = f"на {ban_duration.total_seconds() // 60} минут"
         else:
             duration = "навсегда"
-        await message.reply(f"Пользователь с ID {target_user_id} был забанен {duration}. Причина: {reason}")
+        await message.reply(f"""Пользователь с ID {target_user_id} был забанен {duration}.
+                             Причина: {reason}""")
     except Exception as e:
         await message.reply(f"Не удалось забанить пользователя. Ошибка: {e}")
 
@@ -314,7 +315,11 @@ async def cmd_unmute(message: types.Message):
         await message.reply("Некорректный формат. Используйте /unmute <username/ID>.")
         return
     try:
-        await bot.restrict_chat_member(message.chat.id, target_id, types.ChatPermissions(can_send_messages=True, can_send_other_messages=True), until_date=None)
+        await bot.restrict_chat_member(
+            message.chat.id, 
+            target_id, 
+            types.ChatPermissions(can_send_messages=True, can_send_other_messages=True), 
+            until_date=None)
         await message.reply(f"Пользователь {target_id} размучен.")
     except Exception as e:
         await message.reply(f"Не удалось снять мьют. Ошибка: {e}")
@@ -490,7 +495,10 @@ async def somebody_added(message: types.Message):
         xiao_hello_image = FSInputFile("xiao.jpg")
         await message.reply_photo(
             xiao_hello_image,
-            caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\nПеред тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\nНе забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\nПриятного качанения в нашем кочон подвале 😘"
+            caption=f"""Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\n
+            Перед тем как начать общение ТАПКИ БЛЯ, чтобы не получить пизды от Сьпрей.\n\n
+            Не забудьте установить зондбэ камчан командой /privetbradok для удобного бла бла бла с брадками.\n\n
+            Приятного качанения в нашем кочон подвале 😘"""
         )
 
 @dp.message(F.text)
