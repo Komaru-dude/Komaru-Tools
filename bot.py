@@ -447,8 +447,13 @@ async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
         chat_name = message.chat.title
         user_id = user.id
+        username = user.username
         if not db.user_exists(user_id):
             db.add_user(user_id)
+        if not db.user_have_username(user_id):
+            db.add_username(user_id, username)
+        if not username == db.get_username(user_id):
+            db.add_username(user_id, username)
         xiao_hello_image = FSInputFile("xiao.jpg")
         await message.reply_photo(
             xiao_hello_image,
@@ -464,6 +469,8 @@ async def message_handler(message: types.Message):
         db.add_user(user_id)
     if not db.user_have_username(user_id):
         db.add_username(user_id, username)
+    if not username == db.get_username(user_id):
+        db.add_username(user_id, username)
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
@@ -473,6 +480,7 @@ async def message_handler(message: types.Message):
         try:
             if not db.user_exists(user_id):
                 db.add_user(user_id)
+            db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
             await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
         except:
