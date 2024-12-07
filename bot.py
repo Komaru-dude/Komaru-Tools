@@ -49,16 +49,35 @@ async def cmd_info(message: types.Message):
     if not user_id == user_data[0]:
         db.update_user_id(user_data[0], user_id)
     
-    # Отправляем сообщение с кликабельным именем и ссылкой на профиль по ID
-    await message.reply(f"""Информация о пользователе: {clickable_name}\n
-                Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n\n
-                Юзернейм: {user_data[1]}\n
-                Айди: {user_id}\n
-                Ранг: {user_data[6]}\n
-                Кол-во сообщений: {user_data[8]}\n
-                Репутация: {user_data[5]}\n
-                Префикс: {user_data[7]}""", parse_mode=ParseMode.HTML)
+    # Формируем текст с информацией о пользователе
+    user_info = (
+        f"Информация о пользователе: {clickable_name}\n"
+        f"Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n"
+        f"Юзернейм: {user_data[1]}\n"
+        f"Айди: {user_id}\n"
+        f"Ранг: {user_data[6]}\n"
+        f"Кол-во сообщений: {user_data[8]}\n"
+        f"Репутация: {user_data[5]}\n"
+        f"Префикс: {user_data[7]}"
+    )
 
+    # Отправляем сообщение с информацией
+    await message.reply(user_info, parse_mode=ParseMode.HTML)
+
+@dp.message(Command("rules"))
+async def cmd_rules(message: Message):
+    komaru_rules_video = FSInputFile("rules.mp4")
+    # Отправляем видео с правилами чата
+    caption = (
+        f"Привет {message.from_user.full_name}\n"
+        "Вот краткий список правил чата:\n\n"
+        "Не твори хуйни\n\n"
+        "Список команд:\n\n"
+        "/info - Посмотреть информацию о себе\n"
+        "/privetbradok - Приве брадок\n\n"
+        "Ыгыгыгыг"
+    )
+    await message.reply_video(komaru_rules_video, caption=caption)
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
     # Проверяем, есть ли у пользователя разрешение на "блокировку пользователей"
@@ -465,20 +484,6 @@ async def cmd_history(message: types.Message):
         f"История наказаний:\n{history_text}"
     )
     await message.reply(response)
-
-@dp.message(Command("rules"))
-async def cmd_rules(message: Message):
-    komaru_rules_video = FSInputFile("rules.mp4")
-    await message.reply_video(
-        komaru_rules_video,
-        caption=f"""Привет {message.from_user.full_name}\n
-    Вот краткий список правил чата:\n\n
-    Не твори хуйни\n\n
-    Список команд:\n\n
-    /info - Посмотреть информацию о себе\n
-    /privetbradok - Приве брадок\n\n
-    Ыгыгыгыг"""
-    )
 
 @dp.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
