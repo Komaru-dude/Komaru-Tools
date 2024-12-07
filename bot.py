@@ -5,6 +5,7 @@ from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.exceptions import TelegramBadRequest
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
@@ -480,11 +481,11 @@ async def message_handler(message: types.Message):
         try:
             if not db.user_exists(user_id):
                 db.add_user(user_id)
-            db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
             await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
+            db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
-        except:
-            message.reply("Не удалось ограничить пользователя, сообщите разработчику")
+        except TelegramBadRequest as e:
+            message.reply(f"Не удалось ограничить пользователя из-за ошибки телеграмма: {e}")
 
 def check_ban_words(text: str):
     mute_user = False
