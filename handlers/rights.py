@@ -61,6 +61,7 @@ async def process_user_id(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)  # Проверка, что это число
         await state.update_data(user_id=user_id)
+        await message.answer("ID корректный.")
         await state.set_state(SetRankState.waiting_for_rank)
     except ValueError:
         await message.answer("Некорректный ID. Введите числовой ID.")
@@ -74,7 +75,7 @@ async def process_rank(message: types.Message, state: FSMContext):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=rank, callback_data=rank) for rank in ranks]
     ])
-    await message.reply("Выберите новый ранг для пользователя:", reply_markup=keyboard)
+    await message.answer("Выберите новый ранг для пользователя:", reply_markup=keyboard)
     await state.set_state(SetRankState.waiting_for_rank)  # Ожидаем выбор пользователя
 
 @rght_router.callback_query(SetRankState.waiting_for_rank)
