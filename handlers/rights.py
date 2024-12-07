@@ -7,6 +7,14 @@ import db, secrets
 
 rght_router = Router()
 
+@rght_router.message(Command('cancel'))
+async def cmd_cancel(message: types.Message, state: FSMContext):
+    if await state.get_state() is not None:
+        await state.clear()
+        await message.reply("Действие отменено. Состояние сброшено.")
+    else:
+        await message.reply("Нет активного действия для отмены.")
+
 # Состояния /setrank
 class SetRankState(StatesGroup):
     waiting_for_token = State()
@@ -84,11 +92,3 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     # Отправляем подтверждение
     await callback_query.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
-
-@rght_router.message(Command('cancel'))
-async def cmd_cancel(message: types.Message, state: FSMContext):
-    if await state.get_state() is not None:
-        await state.clear()
-        await message.reply("Действие отменено. Состояние сброшено.")
-    else:
-        await message.reply("Нет активного действия для отмены.")
