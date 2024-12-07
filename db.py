@@ -286,6 +286,6 @@ def get_history(user_id):
 def update_user_warn_limit(user_id, limit):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''UPDATE users SET warn_limit = ? WHERE user_id = ?''', (limit, user_id))
+    cursor.execute('''UPDATE users SET warn_limit = warn_limit + ? WHERE user_id = ?''', (limit, user_id))
     conn.commit()
     conn.close()
