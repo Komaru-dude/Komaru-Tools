@@ -59,7 +59,7 @@ async def cmd_status(message: types.Message):
     memory_loads.append(memory_percent)
 
     # Убираем старые данные (если прошло больше 5 минут)
-    if time() - start_time > 300:  # 5 минут = 300 секунд
+    if time.time() - start_time > 300:  # 5 минут = 300 секунд
         cpu_loads.pop(0)
         memory_loads.pop(0)
         start_time = time()  # сбрасываем таймер
