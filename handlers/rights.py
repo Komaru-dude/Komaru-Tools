@@ -60,7 +60,6 @@ async def process_rank(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)  # Проверка, что это число
         await state.update_data(user_id=user_id)
-        await message.answer("ID корректный.")
     except ValueError:
         await message.answer("Некорректный ID. Введите числовой ID.")
     # Список доступных рангов
