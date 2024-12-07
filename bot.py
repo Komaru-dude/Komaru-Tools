@@ -1,6 +1,6 @@
 import asyncio, logging, os, db, secrets, re
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile, Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
@@ -449,7 +449,7 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     await callback_query.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
 
-@dp.message(Command('cancel'), StateFilter("*"))
+@dp.message(Command('cancel'))
 async def cmd_cancel(message: types.Message, state: FSMContext):
     if await state.get_state() is not None:
         await state.clear()
