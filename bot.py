@@ -371,6 +371,14 @@ async def cmd_unmute(message: types.Message):
     except Exception as e:
         await message.reply(f"Не удалось снять бан. Ошибка: {e}")
 
+@dp.message(Command('cancel'))
+async def cmd_cancel(message: types.Message, state: FSMContext):
+    if await state.get_state() is not None:
+        await state.clear()
+        await message.reply("Действие отменено. Состояние сброшено.")
+    else:
+        await message.reply("Нет активного действия для отмены.")
+
 # Состояния /setrank
 class SetRankState(StatesGroup):
     waiting_for_token = State()
@@ -448,14 +456,6 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     # Отправляем подтверждение
     await callback_query.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
-
-@dp.message(Command('cancel'))
-async def cmd_cancel(message: types.Message, state: FSMContext):
-    if await state.get_state() is not None:
-        await state.clear()
-        await message.reply("Действие отменено. Состояние сброшено.")
-    else:
-        await message.reply("Нет активного действия для отмены.")
 
 @dp.message(Command('privetbradok'))
 async def cmd_privebradok(message: types.Message):
