@@ -80,7 +80,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
                     warn_limit = user_data[10]
-                    if warns > warn_limit:
+                    if warns >= warn_limit:
                         until_date = datetime.now() + timedelta(hours=2)
                         await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
                         db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
@@ -217,8 +217,8 @@ async def cmd_ban(message: types.Message, bot: Bot):
             duration = f"на {ban_duration.total_seconds() // 60} минут"
         else:
             duration = "навсегда"
-        await message.reply(f"""Пользователь с ID {target_user_id} был забанен {duration}.
-                             Причина: {reason}""")
+        await message.reply(f"Пользователь с ID {target_user_id} был забанен {duration}."
+                             f"Причина: {reason}")
     except Exception as e:
         await message.reply(f"Не удалось забанить пользователя. Ошибка: {e}")
 
@@ -249,7 +249,7 @@ async def cmd_unmute(message: types.Message, bot: Bot):
             target_id, 
             types.ChatPermissions(can_send_messages=True, can_send_other_messages=True), 
             until_date=None)
-        await message.reply(f"Пользователь {target_id} размучен.")
+        await message.reply(f"Пользователь {target_id} размьючен.")
     except Exception as e:
         await message.reply(f"Не удалось снять мьют. Ошибка: {e}")
 
