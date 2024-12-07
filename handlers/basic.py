@@ -107,7 +107,7 @@ async def cmd_info(message: types.Message):
         f"Ранг: {user_data[6]}\n"
         f"Кол-во сообщений: {user_data[8]}\n"
         f"Репутация: {user_data[5]}\n"
-        f"Демотиваторы: {user_data[9]}"
+        f"Демотиваторы: {user_data[9]}\n"
         f"Префикс: {user_data[7]}"
     )
 

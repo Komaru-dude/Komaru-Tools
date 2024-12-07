@@ -1,10 +1,26 @@
 import db
 from aiogram import F, Router, types, Bot
 from aiogram.filters import Command
-from aiogram.enums import ParseMode
 from datetime import datetime, timedelta
 
 mod_router = Router()
+
+# Функция для парсинга времени
+def parse_time(time_str):
+    """Парсит время из строки формата 3h, 3m или 3d"""
+    try:
+        unit = time_str[-1]
+        amount = int(time_str[:-1])
+        if unit == 'h':
+            return timedelta(hours=amount)
+        elif unit == 'm':
+            return timedelta(minutes=amount)
+        elif unit == 'd':
+            return timedelta(days=amount)
+        else:
+            return None
+    except (ValueError, IndexError):
+        return None
 
 @mod_router.message(Command("warn"))
 async def warn_cmd(message: types.Message, bot: Bot):
@@ -40,8 +56,8 @@ async def warn_cmd(message: types.Message, bot: Bot):
                     if not db.user_exists(target_user_id):
                         db.add_user(target_user_id)
                     db.update_user_warns(target_user_id, reason)
-                    await message.reply(f"""Пользователь с ID {target_user_id} был предупреждён.
-                                         Причина: {reason}""")
+                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён."
+                                         "Причина: {reason}")
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
                     warn_limit = user_data[10]
@@ -90,23 +106,6 @@ async def cmd_mute(message: types.Message, bot: Bot):
     
     # Разбиваем текст команды
     parts = message.text.split(' ', 3)
-
-    # Функция для парсинга времени
-    def parse_time(time_str):
-        """Парсит время из строки формата 3h, 3m или 3d"""
-        try:
-            unit = time_str[-1]
-            amount = int(time_str[:-1])
-            if unit == 'h':
-                return timedelta(hours=amount)
-            elif unit == 'm':
-                return timedelta(minutes=amount)
-            elif unit == 'd':
-                return timedelta(days=amount)
-            else:
-                return None
-        except (ValueError, IndexError):
-            return None
 
     # Проверка на наличие времени
     if len(parts) < 2 or not parse_time(parts[1]):
@@ -171,23 +170,6 @@ async def cmd_ban(message: types.Message, bot: Bot):
 
     # Разбиваем текст команды
     parts = message.text.split(' ', 3)
-
-    # Парсинг времени
-    def parse_time(time_str):
-        """Парсит время из строки формата 3h, 3m, 3d"""
-        try:
-            unit = time_str[-1]
-            amount = int(time_str[:-1])
-            if unit == 'h':
-                return timedelta(hours=amount)
-            elif unit == 'm':
-                return timedelta(minutes=amount)
-            elif unit == 'd':
-                return timedelta(days=amount)
-            else:
-                return None
-        except (ValueError, IndexError):
-            return None
 
     # Проверка времени
     if len(parts) > 1:
