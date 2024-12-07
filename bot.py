@@ -404,11 +404,13 @@ async def process_user_id(message: types.Message, state: FSMContext):
 
 @dp.message(SetRankState.waiting_for_rank)
 async def process_rank(message: types.Message, state: FSMContext):
-    # Создание инлайн-кнопок для выбора ранга
-    ranks = ["Владелец", "Администратор", "Модератор", "Участник"]  # Пример доступных рангов
-    keyboard = InlineKeyboardMarkup(row_width=2)  # Два ряда кнопок
-    buttons = [InlineKeyboardButton(text=rank, callback_data=rank) for rank in ranks]
-    keyboard.add(*buttons)
+    # Список доступных рангов
+    ranks = ["Admin", "Moderator", "User", "Guest"]
+    
+    # Создание кнопок для каждого ранга
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=rank, callback_data=rank) for rank in ranks]
+    ])
 
     await message.answer("Выберите новый ранг для пользователя:", reply_markup=keyboard)
     await state.set_state(SetRankState.waiting_for_rank)  # Ожидаем выбор пользователя
