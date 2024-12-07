@@ -21,8 +21,8 @@ async def warn_cmd(message: types.Message, bot: Bot):
         if not db.user_exists(target_user_id):
             db.add_user(target_user_id)
         db.update_user_warns(target_user_id, reason)
-        await message.reply(f"""Пользователь с ID {target_user_id} был предупреждён.
-                             Причина: {reason}""")
+        await message.reply(f"Пользователь с ID {target_user_id} был предупреждён."
+                             f"Причина: {reason}")
     else:
         # Разделяем команду и аргументы
         parts = message.text.split(' ', 2)
