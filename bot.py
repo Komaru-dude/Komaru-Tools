@@ -423,7 +423,6 @@ async def process_user_id(message: types.Message, state: FSMContext):
 
 @dp.message(SetRankState.waiting_for_rank)
 async def process_rank(message: types.Message, state: FSMContext):
-    timer_message = await message.answer("⏳")
     # Список доступных рангов
     ranks = ["Владелец", "Администратор", "Участник", "Замьючен", "Заблокирован"]
     
@@ -431,8 +430,6 @@ async def process_rank(message: types.Message, state: FSMContext):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=rank, callback_data=rank) for rank in ranks]
     ])
-    await asyncio.sleep(2)
-    await bot.delete_message(chat_id=message.chat.id, message_id=timer_message.message.id)
     await message.reply("Выберите новый ранг для пользователя:", reply_markup=keyboard)
     await state.set_state(SetRankState.waiting_for_rank)  # Ожидаем выбор пользователя
 
