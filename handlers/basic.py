@@ -41,6 +41,8 @@ async def cmd_start(message: types.Message):
 
 @base_router.message(Command("status"))
 async def cmd_status(message: types.Message):
+    global start_time  # Переместил global сюда
+
     ping_start_time = time.monotonic()
     sent_message = await message.reply("⏳")
     end_time = time.monotonic()
@@ -57,7 +59,6 @@ async def cmd_status(message: types.Message):
     memory_loads.append(memory_percent)
 
     # Убираем старые данные (если прошло больше 5 минут)
-    global start_time
     if time() - start_time > 300:  # 5 минут = 300 секунд
         cpu_loads.pop(0)
         memory_loads.pop(0)
@@ -76,9 +77,9 @@ async def cmd_status(message: types.Message):
     uptime_str = f"{days}д {hours}ч {minutes}м {seconds}с"
     await sent_message.edit_text(f"Пинг: {int(ping)} мс\n"
                                  f"Бот работает: {uptime_str}\n"
-                                 f"Средняя загруженность ЦПУ (5м): {avg_cpu_load:2f}%\n"
-                                 f"Средняя загруженность ОЗУ (5м): {avg_memory_load:2f}%")
-
+                                 f"Средняя загруженность ЦПУ (5м): {avg_cpu_load:.2f}%\n"
+                                 f"Средняя загруженность ОЗУ (5м): {avg_memory_load:.2f}%")
+    
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
     # Достаём информацию о пользователе
