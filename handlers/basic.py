@@ -62,7 +62,7 @@ async def cmd_status(message: types.Message):
     if time.time() - start_time > 300:  # 5 минут = 300 секунд
         cpu_loads.pop(0)
         memory_loads.pop(0)
-        start_time = time()  # сбрасываем таймер
+        start_time = time.time()  # сбрасываем таймер
 
     # Вычисляем среднее значение за последние 5 минут
     avg_cpu_load = sum(cpu_loads) / len(cpu_loads) if cpu_loads else 0
