@@ -27,9 +27,17 @@ if not os.path.exists(DB_PATH):
     create_db()
 
 # Функция для проверки ранга пользователя
-def has_permission(user_id):
-    # Список разрешенных статусов
-    allowed_ranks = ["Администратор", "Модератор", "Владелец"]
+def has_permission(user_id, level):
+    # Словарь с уровнями и соответствующими рангами
+    rank_to_level = {
+        "Забанен": 0,
+        "Замьючен": 0,
+        "Участник": 1,
+        "Модератор": 2,
+        "Администратор": 3,
+        "Владелец": 4
+    }
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -41,8 +49,13 @@ def has_permission(user_id):
     if result is None:
         return False
     
-    user_status = result[0]  # Получаем статус пользователя
-    return user_status in allowed_ranks  # Проверяем, входит ли ранг в разрешенные
+    user_rank = result[0]  # Получаем статус пользователя
+    user_level = rank_to_level.get(user_rank)
+    
+    if user_level is None:
+        return False  # Если ранг не найден в словаре, возвращаем False
+
+    return user_level >= level  # Проверяем, соответствует ли уровень пользователя требуемому
 
 def user_have_username(user_id):
     conn = sqlite3.connect(DB_PATH)

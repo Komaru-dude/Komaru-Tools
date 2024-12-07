@@ -78,11 +78,12 @@ async def cmd_rules(message: Message):
         "Ыгыгыгыг"
     )
     await message.reply_video(komaru_rules_video, caption=caption)
+
 @dp.message(Command("warn"))
 async def warn_cmd(message: types.Message):
     # Проверяем, есть ли у пользователя разрешение на "блокировку пользователей"
     user_id = message.from_user.id
-    if not db.has_permission(user_id):
+    if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
@@ -156,7 +157,7 @@ async def cmd_mute(message: types.Message):
     user_id = message.from_user.id
 
     # Проверка прав пользователя
-    if not db.has_permission(user_id):
+    if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
@@ -237,7 +238,7 @@ async def cmd_ban(message: types.Message):
     user_id = message.from_user.id
 
     # Проверка прав пользователя
-    if not db.has_permission(user_id):
+    if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
 
@@ -317,7 +318,7 @@ async def cmd_unmute(message: types.Message):
     user_id = message.from_user.id
     text = message.text
     parts = text.split(maxsplit=1)
-    if not db.has_permission(user_id):
+    if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     if len(parts) < 2:
@@ -348,7 +349,7 @@ async def cmd_unmute(message: types.Message):
     user_id = message.from_user.id
     text = message.text
     parts = text.split(maxsplit=1)
-    if not db.has_permission(user_id):
+    if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     if len(parts) < 2:
