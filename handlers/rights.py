@@ -69,7 +69,7 @@ async def process_user_id(message: types.Message, state: FSMContext):
 @rght_router.message(SetRankState.waiting_for_rank)
 async def process_rank(message: types.Message, state: FSMContext):
     # Список доступных рангов
-    ranks = ["Владелец", "Администратор", "Участник", "Замьючен", "Заблокирован"]
+    ranks = ["Владелец", "Администратор", "Модератор", "Участник", "Замьючен", "Заблокирован"]
     
     # Создание кнопок для каждого ранга
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
