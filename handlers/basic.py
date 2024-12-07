@@ -1,10 +1,13 @@
-import db, time
+import db, time, psutil
 from aiogram import types, Router
 from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
 
 base_router = Router()
+# Списки для хранения данных для /status
+cpu_loads = []
+memory_loads = []
 start_time = time.time()
 
 @base_router.message(Command("rules"))
@@ -45,6 +48,25 @@ async def cmd_status(message: types.Message):
     current_time = time.time()
     uptime_seconds = int(current_time - start_time)
 
+    # Получаем текущую загрузку процессора и памяти
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory_percent = psutil.virtual_memory().percent
+
+    # Добавляем данные в списки
+    cpu_loads.append(cpu_percent)
+    memory_loads.append(memory_percent)
+
+    # Убираем старые данные (если прошло больше 5 минут)
+    global start_time
+    if time() - start_time > 300:  # 5 минут = 300 секунд
+        cpu_loads.pop(0)
+        memory_loads.pop(0)
+        start_time = time()  # сбрасываем таймер
+
+    # Вычисляем среднее значение за последние 5 минут
+    avg_cpu_load = sum(cpu_loads) / len(cpu_loads) if cpu_loads else 0
+    avg_memory_load = sum(memory_loads) / len(memory_loads) if memory_loads else 0
+
     # Форматируем аптайм
     days = uptime_seconds // 86400
     hours = (uptime_seconds % 86400) // 3600
@@ -52,7 +74,10 @@ async def cmd_status(message: types.Message):
     seconds = uptime_seconds % 60
 
     uptime_str = f"{days}д {hours}ч {minutes}м {seconds}с"
-    await sent_message.edit_text(f"Пинг: {int(ping)} мс\nБот работает: {uptime_str}")
+    await sent_message.edit_text(f"Пинг: {int(ping)} мс\n"
+                                 f"Бот работает: {uptime_str}\n"
+                                 f"Средняя загруженность ЦПУ (5м): {avg_cpu_load:2f}%\n"
+                                 f"Средняя загруженность ОЗУ (5м): {avg_memory_load:2f}%")
 
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
@@ -81,6 +106,7 @@ async def cmd_info(message: types.Message):
         f"Ранг: {user_data[6]}\n"
         f"Кол-во сообщений: {user_data[8]}\n"
         f"Репутация: {user_data[5]}\n"
+        f"Демотиваторы: {user_data[9]}"
         f"Префикс: {user_data[7]}"
     )
 
