@@ -1,4 +1,4 @@
-from aiogram import types, Router
+from aiogram import types, Router, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
@@ -89,7 +89,7 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     await state.clear()
 
 @rght_router.message(Command('setprefix'))
-async def cmd_setprefix(message: types.Message):
+async def cmd_setprefix(message: types.Message, bot: Bot):
     user_id = message.from_user.id
 
     # Проверка прав пользователя
@@ -130,6 +130,7 @@ async def cmd_setprefix(message: types.Message):
     # Логика установки префикса
     try:
         db.set_prefix(target_user_id, prefix)  # Устанавливаем префикс
+        await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
         await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
     except Exception as e:
         await message.reply(f"Ошибка при установке префикса: {e}")

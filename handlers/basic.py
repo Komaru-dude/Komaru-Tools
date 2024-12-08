@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.enums import ParseMode
 
 base_router = Router()
-# Списки для хранения данных для /status
+# Списки хранения данных для /status
 cpu_loads = []
 memory_loads = []
 start_time = time.time()
