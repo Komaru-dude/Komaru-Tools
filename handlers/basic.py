@@ -19,11 +19,12 @@ async def cmd_rules(message: Message):
         "Вот краткий список правил чата:\n\n"
         "Не твори хуйни\n\n"
         "Список команд:\n"
+        "/start - Бот скажет вам привет\n"
         "/info - Посмотреть информацию о себе\n"
-        "/status - Посмотреть статус бота"
+        "/status - Посмотреть статус бота\n"
         "/privetbradok - Приве брадок\n\n"
-        "/history - История наказаний"
-        "/cancel - Отменить действие"
+        "/history - История наказаний\n"
+        "/cancel - Отменить действие\n"
         "Ыгыгыгыг"
     )
     await message.reply_video(komaru_rules_video, caption=caption)
