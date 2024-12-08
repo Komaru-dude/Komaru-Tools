@@ -289,3 +289,16 @@ def update_user_warn_limit(user_id, limit):
     cursor.execute('''UPDATE users SET warn_limit = warn_limit + ? WHERE user_id = ?''', (limit, user_id))
     conn.commit()
     conn.close()
+
+def set_param(user_id, param, value):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Используем параметризованный запрос для предотвращения SQL-инъекций
+    query = f"UPDATE users SET {param} = ? WHERE user_id = ?"
+    try:
+        cursor.execute(query, (value, user_id))
+        conn.commit()  # Применяем изменения
+    except sqlite3.Error as e:
+        print(f"Ошибка при обновлении параметра: {e}")
+    conn.close()
