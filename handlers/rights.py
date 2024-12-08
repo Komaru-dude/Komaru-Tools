@@ -97,6 +97,12 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
 
+    # Проверка прав бота
+    bot_member = await bot.get_chat_member(chat_id=message.chat.id, user_id=bot.id)
+    if not bot_member.can_promote_members:
+        await message.reply("У бота нет прав для назначения администраторов. Добавьте соответствующие права.")
+        return
+
     # Разбиваем текст команды
     parts = message.text.split(' ', 2)  # Делаем split на максимум 3 части: /setprefix <target> <prefix>
 
@@ -129,8 +135,9 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
 
     # Логика установки префикса
     try:
-        db.set_prefix(target_user_id, prefix)  # Устанавливаем префикс
+        await bot.promote_chat_member(message.chat.id, target_user_id)
         await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
+        db.set_prefix(target_user_id, prefix)
         await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
     except Exception as e:
         await message.reply(f"Ошибка при установке префикса: {e}")
