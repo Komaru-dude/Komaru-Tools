@@ -133,3 +133,39 @@ async def cmd_setprefix(message: types.Message):
         await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
     except Exception as e:
         await message.reply(f"Ошибка при установке префикса: {e}")
+
+@rght_router.message(Command("setdb"))
+async def cmd_setdb(message: types.Message):
+    user_id = message.from_user.id
+    if not db.has_permission(user_id, 4):
+        await message.reply("У вас нет прав для выполнения этой команды")
+        return
+    
+    # Разбиваем текст команды
+    parts = message.text.split(' ', 3)
+
+    if len(parts) < 4:
+        await message.reply("Необходимо указать ID, параметр, значение.\nФормат: /setdb <ID> <parameter> <value>")
+        return
+    
+    user_input = parts[1]
+    param = parts[2]
+
+    if user_input.startswith('@'): # Если указан username
+        username = user_input[1:]
+        target_user_id = db.get_user_id_by_username(username)
+        if not target_user_id:
+            await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
+            return
+        elif user_input.isdigit(): # Если указан ID
+            target_user_id = int(user_input)
+        else:
+            await message.reply("Некорректный формат. Используйте /setdb <ID> <paramete> <value>.")
+            return
+        
+    # Логика изменения значения
+    try:
+        db.set_param(user_id=target_user_id, param=param, value=value)
+        await message.reply(f"Параметр {param} установлен на {value} для {target_user_id}")
+    except Exception as e:
+        await message.replt(f"Ошибка при установке параметра: {e}")
