@@ -169,32 +169,20 @@ async def cmd_ban(message: types.Message, bot: Bot):
         return
 
     # Разбиваем текст команды
-    parts = message.text.split(' ', 3)
-
-    # Проверка времени
-    if len(parts) > 1:
-        time_str = parts[1]
-        ban_duration = parse_time(time_str)
-        if ban_duration:
-            until_date = datetime.now() + ban_duration
-        else:
-            await message.reply("Ошибка: неверный формат времени. Используйте 3h, 3m или 3d.")
-            return
-    else:
-        # Если время не указано — бан навсегда
-        until_date = None
+    parts = message.text.split(' ', 3)  # Ожидаем до 4 частей: /ban цель время причина
 
     # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
+        ban_duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
         reason = parts[2] if len(parts) > 2 else "Без причины"
+        until_date = datetime.now() + ban_duration if ban_duration else None
     else:
         if len(parts) < 2:
             await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
             return
 
         user_input = parts[1]
-        reason = parts[2] if len(parts) > 2 else "Без причины"
 
         # Если указан username
         if user_input.startswith('@'):
@@ -206,21 +194,21 @@ async def cmd_ban(message: types.Message, bot: Bot):
         elif user_input.isdigit():
             target_user_id = int(user_input)
         else:
-            await message.reply("Некорректный формат. Используйте /ban <время> @username/ID причина.")
+            await message.reply("Некорректный формат. Используйте /ban <цель> <время> <причина>.")
             return
 
-    # Применение бана
+        # Проверяем время и причину
+        ban_duration = parse_time(parts[2]) if len(parts) > 2 and parse_time(parts[2]) else None
+        reason = parts[3] if len(parts) > 3 else "Без причины"
+        until_date = datetime.now() + ban_duration if ban_duration else None
+
+    # Выполняем бан
     try:
         await bot.ban_chat_member(chat_id=message.chat.id, user_id=target_user_id, until_date=until_date)
-        db.update_user_bans(target_user_id, reason)
-        if until_date:
-            duration = f"на {ban_duration.total_seconds() // 60} минут"
-        else:
-            duration = "навсегда"
-        await message.reply(f"Пользователь с ID {target_user_id} был забанен {duration}."
-                             f"Причина: {reason}")
+        ban_time_str = f"до {until_date}" if until_date else "навсегда"
+        await message.reply(f"Пользователь {target_user_id} был забанен {ban_time_str}.\nПричина: {reason}")
     except Exception as e:
-        await message.reply(f"Не удалось забанить пользователя. Ошибка: {e}")
+        await message.reply(f"Не удалось забанить пользователя: {e}")
 
 @mod_router.message(Command('unmute'))
 async def cmd_unmute(message: types.Message, bot: Bot):
