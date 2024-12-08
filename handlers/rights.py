@@ -138,7 +138,7 @@ async def cmd_setprefix(message: types.Message):
 async def cmd_setdb(message: types.Message):
     user_id = message.from_user.id
     if not db.has_permission(user_id, 4):
-        await message.reply("У вас нет прав для выполнения этой команды")
+        await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
     # Разбиваем текст команды
@@ -152,21 +152,22 @@ async def cmd_setdb(message: types.Message):
     param = parts[2]
     value = parts[3]
 
-    if user_input.startswith('@'): # Если указан username
+    # Обрабатываем целевой ID или username
+    if user_input.startswith('@'):  # Если указан username
         username = user_input[1:]
         target_user_id = db.get_user_id_by_username(username)
         if not target_user_id:
             await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
             return
-        elif user_input.isdigit(): # Если указан ID
-            target_user_id = int(user_input)
-        else:
-            await message.reply("Некорректный формат. Используйте /setdb <ID> <paramete> <value>.")
-            return
-        
+    elif user_input.isdigit():  # Если указан ID
+        target_user_id = int(user_input)
+    else:
+        await message.reply("Некорректный формат. Используйте /setdb <ID> <parameter> <value>.")
+        return
+    
     # Логика изменения значения
     try:
         db.set_param(user_id=target_user_id, param=param, value=value)
-        await message.reply(f"Параметр {param} установлен на {value} для {target_user_id}")
+        await message.reply(f"Параметр '{param}' установлен на '{value}' для пользователя с ID {target_user_id}.")
     except Exception as e:
         await message.reply(f"Ошибка при установке параметра: {e}")
