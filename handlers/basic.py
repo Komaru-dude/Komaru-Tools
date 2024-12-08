@@ -18,9 +18,12 @@ async def cmd_rules(message: Message):
         f"Привет, {message.from_user.full_name}\n"
         "Вот краткий список правил чата:\n\n"
         "Не твори хуйни\n\n"
-        "Список команд:\n\n"
+        "Список команд:\n"
         "/info - Посмотреть информацию о себе\n"
+        "/status - Посмотреть статус бота"
         "/privetbradok - Приве брадок\n\n"
+        "/history - История наказаний"
+        "/cancel - Отменить действие"
         "Ыгыгыгыг"
     )
     await message.reply_video(komaru_rules_video, caption=caption)
@@ -97,7 +100,7 @@ async def cmd_info(message: types.Message):
     user_data = db.get_user_data(user_id)
     if not user_id == user_data[0]:
         db.update_user_id(user_data[0], user_id)
-    
+    print(user_data)
     # Формируем текст с информацией о пользователе
     user_info = (
         f"Информация о пользователе: {clickable_name}\n"
