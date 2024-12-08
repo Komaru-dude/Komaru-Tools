@@ -57,19 +57,18 @@ async def cmd_status(message: types.Message):
     cpu_percent = psutil.cpu_percent(interval=1)
     memory_percent = psutil.virtual_memory().percent
 
-    # Добавляем данные в списки
-    cpu_loads.append(cpu_percent)
-    memory_loads.append(memory_percent)
+    # Добавляем данные в списки с отметкой времени
+    cpu_loads.append((current_time, cpu_percent))
+    memory_loads.append((current_time, memory_percent))
 
-    # Убираем старые данные (если прошло больше 5 минут)
-    if time.time() - start_time > 300:  # 5 минут = 300 секунд
-        cpu_loads.pop(0)
-        memory_loads.pop(0)
-        start_time = time.time()  # сбрасываем таймер
+    # Убираем данные старше 5 минут
+    five_minutes_ago = current_time - 300  # 5 минут = 300 секунд
+    cpu_loads[:] = [(t, load) for t, load in cpu_loads if t >= five_minutes_ago]
+    memory_loads[:] = [(t, load) for t, load in memory_loads if t >= five_minutes_ago]
 
     # Вычисляем среднее значение за последние 5 минут
-    avg_cpu_load = sum(cpu_loads) / len(cpu_loads) if cpu_loads else 0
-    avg_memory_load = sum(memory_loads) / len(memory_loads) if memory_loads else 0
+    avg_cpu_load = sum(load for _, load in cpu_loads) / len(cpu_loads) if cpu_loads else 0
+    avg_memory_load = sum(load for _, load in memory_loads) / len(memory_loads) if memory_loads else 0
 
     # Форматируем аптайм
     days = uptime_seconds // 86400
@@ -100,7 +99,6 @@ async def cmd_info(message: types.Message):
     user_data = db.get_user_data(user_id)
     if not user_id == user_data[0]:
         db.update_user_id(user_data[0], user_id)
-    print(user_data)
     # Формируем текст с информацией о пользователе
     user_info = (
         f"Информация о пользователе: {clickable_name}\n"
