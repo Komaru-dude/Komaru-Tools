@@ -39,22 +39,21 @@ async def message_handler(message: types.Message, bot: Bot):
     if not username == db.get_username(user_id):
         db.add_username(user_id, username)
     db.update_count_messges(user_id)
-    if not message.chat.type == "private":
-        mute_user = check_ban_words(text)
-        if mute_user:
-            print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
-            new_time = datetime.now() + timedelta(hours=2)
-            timestamp = new_time.timestamp()
-            try:
-                if not db.user_exists(user_id):
-                    db.add_user(user_id)
-                await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
-                db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
-                await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
-            except TelegramBadRequest as e:
-                message.reply(f"Не удалось ограничить пользователя из-за ошибки телеграмма: {e}")
-            except:
-                message.reply("Не удалось ограничить пользователя.")
+    mute_user = check_ban_words(text)
+    if mute_user:
+        print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
+        new_time = datetime.now() + timedelta(hours=2)
+        timestamp = new_time.timestamp()
+        try:
+            if not db.user_exists(user_id):
+                db.add_user(user_id)
+            await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
+            db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
+            await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
+        except TelegramBadRequest as e:
+            message.reply(f"Не удалось ограничить пользователя из-за ошибки телеграмма: {e}")
+        except:
+            message.reply("Не удалось ограничить пользователя.")
 
 def check_ban_words(text: str):
     mute_user = False
