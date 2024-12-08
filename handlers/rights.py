@@ -150,6 +150,7 @@ async def cmd_setdb(message: types.Message):
     
     user_input = parts[1]
     param = parts[2]
+    value = parts[3]
 
     if user_input.startswith('@'): # Если указан username
         username = user_input[1:]
