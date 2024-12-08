@@ -13,7 +13,7 @@ def create_db():
                         mutes INTEGER DEFAULT 0,
                         reputation INTEGER DEFAULT 0,
                         rank TEXT DEFAULT 'Участник',
-                        status TEXT DEFAULT '',
+                        prefix TEXT DEFAULT '',
                         message_count INTEGER DEFAULT 0,
                         demotivators INTEGER DEFAULT 0,
                         warn_limit INTEGER DEFAULT 3,
@@ -110,10 +110,10 @@ def user_exists(user_id):
     conn.close()
     return exists
 
-def set_status(user_id, status):
+def set_prefix(user_id, prefix):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''UPDATE users SET status = ? WHERE user_id = ?''', (status, user_id))
+    cursor.execute('''UPDATE users SET prefix = ? WHERE user_id = ?''', (prefix, user_id))
     conn.commit()
     conn.close()
 
