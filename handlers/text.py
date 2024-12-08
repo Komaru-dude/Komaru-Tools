@@ -32,6 +32,11 @@ async def message_handler(message: types.Message, bot: Bot):
     user_id = message.from_user.id
     text = message.text
     username = message.from_user.username
+    # Проверяем, если сообщение из private или channel
+    if message.chat.type == "private":
+        return
+    if message.chat.type == "channel":
+        return
     if not db.user_exists(user_id):
         db.add_user(user_id)
     if not db.user_have_username(user_id):
