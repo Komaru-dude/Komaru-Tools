@@ -22,7 +22,7 @@ async def cmd_rules(message: Message):
         "/start - Бот скажет вам привет\n"
         "/info - Посмотреть информацию о себе\n"
         "/status - Посмотреть статус бота\n"
-        "/privetbradok - Приве брадок\n\n"
+        "/privetbradok - Приве брадок\n"
         "/history - История наказаний\n"
         "/cancel - Отменить действие\n"
         "Ыгыгыгыг"
