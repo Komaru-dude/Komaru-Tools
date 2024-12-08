@@ -87,3 +87,49 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     # Отправляем подтверждение
     await callback_query.answer(f"Ранг '{rank}' успешно установлен для пользователя с ID {user_id}.")
     await state.clear()
+
+@rght_router.message(Command('setprefix'))
+async def cmd_setprefix(message: types.Message):
+    user_id = message.from_user.id
+
+    # Проверка прав пользователя
+    if not db.has_permission(user_id, 3):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
+
+    # Разбиваем текст команды
+    parts = message.text.split(' ', 2)  # Делаем split на максимум 3 части: /setprefix <target> <prefix>
+
+    # Проверка: ответ на сообщение или указан username/ID
+    if message.reply_to_message:
+        target_user_id = message.reply_to_message.from_user.id
+        if len(parts) < 2:
+            await message.reply("Ошибка: необходимо указать префикс для установки.")
+            return
+        prefix = parts[1]
+    else:
+        if len(parts) < 3:
+            await message.reply("Ошибка: необходимо указать цель и префикс. Формат: /setprefix <target> <prefix>")
+            return
+
+        user_input = parts[1]
+        prefix = parts[2]  # Префикс берется как последний аргумент
+
+        if user_input.startswith('@'): # Если указан username
+            username = user_input[1:]
+            target_user_id = db.get_user_id_by_username(username)
+            if not target_user_id:
+                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
+                return
+        elif user_input.isdigit(): # Если указан ID
+            target_user_id = int(user_input)
+        else:
+            await message.reply("Некорректный формат. Используйте /setprefix <target> <prefix>.")
+            return
+
+    # Логика установки префикса
+    try:
+        db.set_prefix(target_user_id, prefix)  # Устанавливаем префикс
+        await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
+    except Exception as e:
+        await message.reply(f"Ошибка при установке префикса: {e}")
