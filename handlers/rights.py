@@ -169,4 +169,4 @@ async def cmd_setdb(message: types.Message):
         db.set_param(user_id=target_user_id, param=param, value=value)
         await message.reply(f"Параметр {param} установлен на {value} для {target_user_id}")
     except Exception as e:
-        await message.replt(f"Ошибка при установке параметра: {e}")
+        await message.reply(f"Ошибка при установке параметра: {e}")
