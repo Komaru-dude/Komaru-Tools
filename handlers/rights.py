@@ -102,6 +102,9 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
     if not bot_member.can_promote_members:
         await message.reply("У бота нет прав для назначения администраторов. Добавьте соответствующие права.")
         return
+    if bot_member.status != "administrator":
+        await message.reply("Бот не является администратором чата.")
+        return
 
     # Разбиваем текст команды
     parts = message.text.split(' ', 2)  # Делаем split на максимум 3 части: /setprefix <target> <prefix>
