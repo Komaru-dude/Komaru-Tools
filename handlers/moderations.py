@@ -103,30 +103,22 @@ async def cmd_mute(message: types.Message, bot: Bot):
     if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
-    
+
     # Разбиваем текст команды
-    parts = message.text.split(' ', 3)
-
-    # Проверка на наличие времени
-    if len(parts) < 2 or not parse_time(parts[1]):
-        await message.reply("Ошибка: необходимо указать время. Используйте формат 3h, 3m или 3d.")
-        return
-
-    time_str = parts[1]
-    mute_duration = parse_time(time_str)
-    until_date = datetime.now() + mute_duration
+    parts = message.text.split(' ', 3)  # Ожидаем до 4 частей: /mute цель время причина
 
     # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
+        duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
         reason = parts[2] if len(parts) > 2 else "Без причины"
+        until_date = datetime.now() + duration if duration else None
     else:
-        if len(parts) < 3:
-            await message.reply("Ошибка: необходимо указать username или ID после времени.")
+        if len(parts) < 2:
+            await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
             return
 
-        user_input = parts[2]
-        reason = parts[3] if len(parts) > 3 else "Без причины"
+        user_input = parts[1]
 
         # Если указан username
         if user_input.startswith('@'):
@@ -138,12 +130,13 @@ async def cmd_mute(message: types.Message, bot: Bot):
         elif user_input.isdigit():
             target_user_id = int(user_input)
         else:
-            await message.reply("Некорректный формат. Используйте /mute <время> @username/ID причина.")
+            await message.reply("Некорректный формат. Используйте /mute <цель> <время> <причина>.")
             return
 
-    # Проверка пользователя в базе данных
-    if not db.user_exists(target_user_id):
-        db.add_user(target_user_id)
+        # Проверяем время и причину
+        duration = parse_time(parts[2]) if len(parts) > 2 and parse_time(parts[2]) else None
+        reason = parts[3] if len(parts) > 3 else "Без причины"
+        until_date = datetime.now() + duration if duration else None
 
     # Применение мута
     try:
@@ -154,7 +147,8 @@ async def cmd_mute(message: types.Message, bot: Bot):
             until_date=until_date
         )
         db.update_user_mutes(target_user_id, reason)
-        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}." 
+        time_str = f"до {until_date}" if until_date else "навсегда"
+        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}.\n" 
                             f"Причина: {reason}")
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя. Ошибка: {e}")
