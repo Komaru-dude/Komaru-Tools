@@ -75,7 +75,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                     if not db.user_exists(target_user_id):
                         db.add_user(target_user_id)
                     db.update_user_warns(target_user_id, reason)
-                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён."
+                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
                                          f"Причина: {reason}")
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
@@ -92,7 +92,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
             else:
                 await message.reply("Некорректный формат. Используйте /warn @username или /warn ID причина.")
         else:
-            await message.reply("Синтаксис команды некорректный."
+            await message.reply("Синтаксис команды некорректный.\n"
                                  "Используйте /warn @username причина или /warn ID причина.")
 
 @mod_router.message(Command("mute"))
