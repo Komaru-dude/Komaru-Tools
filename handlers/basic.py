@@ -85,12 +85,17 @@ async def cmd_status(message: types.Message):
     
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
+    parts = message.text.split()
     # Достаём информацию о пользователе
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         user = message.reply_to_message.from_user
         first_name = message.reply_to_message.from_user.first_name
-    elif "@" in message.text:  # Проверяем, есть ли упоминание в тексте
+    elif parts[1].isdigit():
+        user_id = parts[1]
+        username = db.get_username(user_id)
+        first_name = db.get_first_name_by_id(user_id)
+    elif "@" in message.text:
         mention_match = re.search(r"@(\w+)", message.text)
         username = mention_match.group(1)
         user_id = db.get_user_id_by_username(username=username)
@@ -98,6 +103,7 @@ async def cmd_info(message: types.Message):
             await message.reply("Не удалось найти пользователя")
             return
         user = None
+        first_name = db.get_first_name_by_id(user_id)
     else:
         user = message.from_user
         first_name = user.first_name
@@ -105,7 +111,6 @@ async def cmd_info(message: types.Message):
     
     # Ссылка на профиль по ID
     profile_link = f"tg://user?id={user_id}"
-
     # Формируем кликабельное имя пользователя
     clickable_name = f"<a href='{profile_link}'>{first_name}</a>"
 
