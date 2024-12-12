@@ -17,7 +17,8 @@ def create_db():
                         message_count INTEGER DEFAULT 0,
                         demotivators INTEGER DEFAULT 0,
                         warn_limit INTEGER DEFAULT 3,
-                        history TEXT DEFAULT ''
+                        history TEXT DEFAULT '',
+                        first_name TEXT DEFAULT ''
                     )''')
     conn.commit()
     conn.close()
