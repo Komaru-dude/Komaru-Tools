@@ -263,8 +263,6 @@ def get_user_data(user_id):
 def update_user_id(user_id, new_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # Обновляем ID пользователя
     cursor.execute('''UPDATE users SET user_id = ? WHERE user_id = ?''', (new_id, user_id))
     conn.commit()
     
@@ -306,5 +304,12 @@ def set_param(user_id, param, value):
 def get_first_name_by_id(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execure('''SELECT first_name FROM users WHERE user_id = ?''', (user_id))
+    cursor.execute('''SELECT first_name FROM users WHERE user_id = ?''', (user_id))
+    conn.close()
+
+def add_first_name(user_id, first_name):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET first_name = ? WHERE user_id = ?''', (first_name, user_id))
+    conn.commit()
     conn.close()
