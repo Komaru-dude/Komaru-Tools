@@ -280,9 +280,9 @@ def get_history(user_id):
     conn.close()
     
     if result is None or not result[0]:
-        return []  # Если данных нет, возвращаем пустой список
+        return []
     
-    return json.loads(result[0])  # Парсим JSON и возвращаем список
+    return json.loads(result[0])
 
 def update_user_warn_limit(user_id, limit):
     conn = sqlite3.connect(DB_PATH)
@@ -295,11 +295,16 @@ def set_param(user_id, param, value):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Используем параметризованный запрос для предотвращения SQL-инъекций
     query = f"UPDATE users SET {param} = ? WHERE user_id = ?"
     try:
         cursor.execute(query, (value, user_id))
-        conn.commit()  # Применяем изменения
+        conn.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при обновлении параметра: {e}")
+    conn.close()
+
+def get_first_name_by_id(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execure('''SELECT first_name FROM users WHERE user_id = ?''', (user_id))
     conn.close()
