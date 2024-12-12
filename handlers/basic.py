@@ -82,7 +82,7 @@ async def cmd_status(message: types.Message):
                                  f"Бот работает: {uptime_str}\n"
                                  f"Средняя загруженность ЦПУ (5м): {avg_cpu_load:.2f}%\n"
                                  f"Средняя загруженность ОЗУ (5м): {avg_memory_load:.2f}%")
-    
+
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
     parts = message.text.split()
