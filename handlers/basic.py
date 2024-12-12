@@ -91,10 +91,6 @@ async def cmd_info(message: types.Message):
         user_id = message.reply_to_message.from_user.id
         user = message.reply_to_message.from_user
         first_name = message.reply_to_message.from_user.first_name
-    elif parts[1].isdigit():
-        user_id = parts[1]
-        username = db.get_username(user_id)
-        first_name = db.get_first_name_by_id(user_id)
     elif "@" in message.text:
         mention_match = re.search(r"@(\w+)", message.text)
         username = mention_match.group(1)
@@ -105,9 +101,14 @@ async def cmd_info(message: types.Message):
         user = None
         first_name = db.get_first_name_by_id(user_id)
     else:
-        user = message.from_user
-        first_name = user.first_name
-        user_id = user.id
+        if len(parts) > 1:
+            user_id = parts[1]
+            first_name = db.get_first_name_by_id(user_id)
+            user = None
+        else:
+            user = message.from_user
+            first_name = user.first_name
+            user_id = user.id
     
     # Ссылка на профиль по ID
     profile_link = f"tg://user?id={user_id}"
