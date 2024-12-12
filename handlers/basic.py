@@ -1,4 +1,4 @@
-import db, time, psutil
+import db, time, psutil, re
 from aiogram import types, Router
 from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
@@ -86,9 +86,22 @@ async def cmd_status(message: types.Message):
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
     # Достаём информацию о пользователе
-    user = message.from_user
-    first_name = user.first_name
-    user_id = user.id
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        user = message.reply_to_message.from_user
+        first_name = message.reply_to_message.from_user.first_name
+    elif "@" in message.text:  # Проверяем, есть ли упоминание в тексте
+        mention_match = re.search(r"@(\w+)", message.text)
+        username = mention_match.group(1)
+        user_id = db.get_user_id_by_username(username=username)
+        if user_id is None:
+            await message.reply("Не удалось найти пользователя")
+            return
+        user = None
+    else:
+        user = message.from_user
+        first_name = user.first_name
+        user_id = user.id
     
     # Ссылка на профиль по ID
     profile_link = f"tg://user?id={user_id}"
@@ -105,7 +118,7 @@ async def cmd_info(message: types.Message):
         f"Информация о пользователе: {clickable_name}\n"
         f"Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n"
         f"Юзернейм: {user_data[1]}\n"
-        f"Айди: {user_id}\n"
+        f"Айди: {user_data[0]}\n"
         f"Ранг: {user_data[6]}\n"
         f"Кол-во сообщений: {user_data[8]}\n"
         f"Репутация: {user_data[5]}\n"
