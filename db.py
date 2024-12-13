@@ -90,11 +90,7 @@ def get_user_id_by_username(username):
     cursor.execute('''SELECT user_id FROM users WHERE username = ?''', (username,))
     result = cursor.fetchone()
     conn.close()
-    
-    if result is None:
-        return None  # Если юзернейм не найден, возвращаем None
-    
-    return result[0]  # Возвращаем user_id
+    return result[0] if result else None
 
 def set_rank(user_id, rank):
     conn = sqlite3.connect(DB_PATH)
@@ -304,8 +300,10 @@ def set_param(user_id, param, value):
 def get_first_name_by_id(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''SELECT first_name FROM users WHERE user_id = ?''', (user_id))
+    cursor.execute('''SELECT first_name FROM users WHERE user_id = ?''', (user_id,))
+    result = cursor.fetchone()
     conn.close()
+    return result[0] if result else None
 
 def add_first_name(user_id, first_name):
     conn = sqlite3.connect(DB_PATH)
