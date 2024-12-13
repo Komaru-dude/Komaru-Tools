@@ -93,7 +93,7 @@ async def cmd_info(message: types.Message):
         user = message.reply_to_message.from_user
         first_name = message.reply_to_message.from_user.first_name
     elif parts1 and "@" in parts1:
-        mention_match = re.search(r"@(\w+)", message.text)
+        mention_match = re.search(r"@(\w+)", parts1)
         username = mention_match.group(1)
         user_id = db.get_user_id_by_username(username=username)
         if user_id is None:
