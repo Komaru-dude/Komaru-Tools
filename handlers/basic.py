@@ -1,4 +1,4 @@
-import db, time, psutil
+import db, time, psutil, re
 from aiogram import types, Router
 from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
@@ -82,17 +82,37 @@ async def cmd_status(message: types.Message):
                                  f"Бот работает: {uptime_str}\n"
                                  f"Средняя загруженность ЦПУ (5м): {avg_cpu_load:.2f}%\n"
                                  f"Средняя загруженность ОЗУ (5м): {avg_memory_load:.2f}%")
-    
+
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
+    parts = message.text.split()
+    parts1 = parts[1] if len(parts) > 1 else None
     # Достаём информацию о пользователе
-    user = message.from_user
-    first_name = user.first_name
-    user_id = user.id
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        user = message.reply_to_message.from_user
+        first_name = message.reply_to_message.from_user.first_name
+    elif parts1 and "@" in parts1:
+        mention_match = re.search(r"@(\w+)", parts1)
+        username = mention_match.group(1)
+        user_id = db.get_user_id_by_username(username=username)
+        if user_id is None:
+            await message.reply("Не удалось найти пользователя")
+            return
+        user = None
+        first_name = db.get_first_name_by_id(user_id)
+    else:
+        if len(parts) > 1:
+            user_id = parts[1]
+            first_name = db.get_first_name_by_id(user_id)
+            user = None
+        else:
+            user = message.from_user
+            first_name = user.first_name
+            user_id = user.id
     
     # Ссылка на профиль по ID
     profile_link = f"tg://user?id={user_id}"
-
     # Формируем кликабельное имя пользователя
     clickable_name = f"<a href='{profile_link}'>{first_name}</a>"
 
@@ -105,7 +125,7 @@ async def cmd_info(message: types.Message):
         f"Информация о пользователе: {clickable_name}\n"
         f"Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n"
         f"Юзернейм: {user_data[1]}\n"
-        f"Айди: {user_id}\n"
+        f"Айди: {user_data[0]}\n"
         f"Ранг: {user_data[6]}\n"
         f"Кол-во сообщений: {user_data[8]}\n"
         f"Репутация: {user_data[5]}\n"

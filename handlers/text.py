@@ -12,12 +12,15 @@ async def somebody_added(message: types.Message):
         chat_name = message.chat.title
         user_id = user.id
         username = user.username
+        first_name = user.first_name
         if not db.user_exists(user_id):
             db.add_user(user_id)
         if not db.user_have_username(user_id):
             db.add_username(user_id, username)
         if not username == db.get_username(user_id):
-            db.add_username(user_id, username)
+            db.add_username(user_id, username) 
+        if not db.get_first_name_by_id(user_id):
+            db.add_first_name(user_id=user_id, first_name=first_name)
         xiao_hello_image = FSInputFile("xiao.jpg")
         await message.reply_photo(
             xiao_hello_image,
@@ -32,7 +35,7 @@ async def message_handler(message: types.Message, bot: Bot):
     user_id = message.from_user.id
     text = message.text
     username = message.from_user.username
-    # Проверяем, если сообщение из private или channel
+    first_name = message.from_user.first_name
     if message.chat.type == "private":
         return
     if message.chat.type == "channel":
@@ -43,6 +46,8 @@ async def message_handler(message: types.Message, bot: Bot):
         db.add_username(user_id, username)
     if not username == db.get_username(user_id):
         db.add_username(user_id, username)
+    if not db.get_first_name_by_id(user_id):
+        db.add_first_name(user_id=user_id, first_name=first_name)
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:

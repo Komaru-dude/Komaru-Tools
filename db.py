@@ -17,7 +17,8 @@ def create_db():
                         message_count INTEGER DEFAULT 0,
                         demotivators INTEGER DEFAULT 0,
                         warn_limit INTEGER DEFAULT 3,
-                        history TEXT DEFAULT ''
+                        history TEXT DEFAULT '',
+                        first_name TEXT DEFAULT ''
                     )''')
     conn.commit()
     conn.close()
@@ -89,11 +90,7 @@ def get_user_id_by_username(username):
     cursor.execute('''SELECT user_id FROM users WHERE username = ?''', (username,))
     result = cursor.fetchone()
     conn.close()
-    
-    if result is None:
-        return None  # Если юзернейм не найден, возвращаем None
-    
-    return result[0]  # Возвращаем user_id
+    return result[0] if result else None
 
 def set_rank(user_id, rank):
     conn = sqlite3.connect(DB_PATH)
@@ -262,8 +259,6 @@ def get_user_data(user_id):
 def update_user_id(user_id, new_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # Обновляем ID пользователя
     cursor.execute('''UPDATE users SET user_id = ? WHERE user_id = ?''', (new_id, user_id))
     conn.commit()
     
@@ -279,9 +274,9 @@ def get_history(user_id):
     conn.close()
     
     if result is None or not result[0]:
-        return []  # Если данных нет, возвращаем пустой список
+        return []
     
-    return json.loads(result[0])  # Парсим JSON и возвращаем список
+    return json.loads(result[0])
 
 def update_user_warn_limit(user_id, limit):
     conn = sqlite3.connect(DB_PATH)
@@ -294,11 +289,25 @@ def set_param(user_id, param, value):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Используем параметризованный запрос для предотвращения SQL-инъекций
     query = f"UPDATE users SET {param} = ? WHERE user_id = ?"
     try:
         cursor.execute(query, (value, user_id))
-        conn.commit()  # Применяем изменения
+        conn.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при обновлении параметра: {e}")
+    conn.close()
+
+def get_first_name_by_id(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT first_name FROM users WHERE user_id = ?''', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def add_first_name(user_id, first_name):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET first_name = ? WHERE user_id = ?''', (first_name, user_id))
+    conn.commit()
     conn.close()
