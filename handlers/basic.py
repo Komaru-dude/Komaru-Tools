@@ -86,7 +86,7 @@ async def cmd_status(message: types.Message):
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
     parts = message.text.split()
-    parts1 = parts[1] if parts[1] else None
+    parts1 = parts[1] if len(parts) > 1 else None
     # Достаём информацию о пользователе
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
