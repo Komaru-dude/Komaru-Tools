@@ -86,12 +86,13 @@ async def cmd_status(message: types.Message):
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
     parts = message.text.split()
+    parts1 = parts[1] if parts[1] else None
     # Достаём информацию о пользователе
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         user = message.reply_to_message.from_user
         first_name = message.reply_to_message.from_user.first_name
-    elif "@" in message.text:
+    elif "@" in parts1:
         mention_match = re.search(r"@(\w+)", message.text)
         username = mention_match.group(1)
         user_id = db.get_user_id_by_username(username=username)
