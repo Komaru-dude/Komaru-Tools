@@ -5,8 +5,12 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import secrets
 from bot import db
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 rght_router = Router()
+ADMIN_ID = os.getenv("ADMIN_ID")
 
 @rght_router.message(Command('cancel'))
 async def cmd_cancel(message: types.Message, state: FSMContext):
@@ -24,7 +28,7 @@ class SetRankState(StatesGroup):
 TOKENS = {}
 
 @rght_router.message(Command('setrank'))
-async def cmd_setrank(message: types.Message, state: FSMContext):
+async def cmd_setrank(message: types.Message, state: FSMContext, bot: Bot):
     user_id = message.from_user.id
     if not db.user_exists(user_id):
         db.add_user(user_id)
@@ -39,8 +43,8 @@ async def cmd_setrank(message: types.Message, state: FSMContext):
     token = secrets.token_hex(lenght)
     TOKENS[user_id] = token
 
-    print(f"Токен для смены ранга: {token}, запросил {user_id}")
-    await message.answer("Введите токен из командной строки для продолжения.")
+    await bot.send_message(chat_id=ADMIN_ID, text=f"Токен для смены ранга: {token}, запросил {user_id}")
+    await message.answer("Введите токен для продолжения.")
     await state.set_state(SetRankState.waiting_for_token)
 
 @rght_router.message(SetRankState.waiting_for_token)
