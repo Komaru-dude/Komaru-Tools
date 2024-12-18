@@ -58,6 +58,7 @@ async def message_handler(message: types.Message, bot: Bot):
         try:
             if not db.user_exists(user_id):
                 db.add_user(user_id)
+            await message.delete()
             await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
             db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
