@@ -4,6 +4,7 @@ from aiogram.types import FSInputFile
 from aiogram.exceptions import TelegramBadRequest
 from datetime import datetime, timedelta
 from bot import db
+from pathlib import Path
 
 txt_router = Router()
 
@@ -58,6 +59,7 @@ async def message_handler(message: types.Message, bot: Bot):
         try:
             if not db.user_exists(user_id):
                 db.add_user(user_id)
+            await message.delete()
             await bot.restrict_chat_member(message.chat.id, user_id, types.ChatPermissions(can_send_messages=False), until_date=timestamp)
             db.update_user_mutes(user_id=user_id, reason="Использование запрещённых слов")
             await message.reply(f"Пользователь {user_id} ограничен за использование запрещённых слов.")
@@ -68,7 +70,7 @@ async def message_handler(message: types.Message, bot: Bot):
 
 def check_ban_words(text: str):
     mute_user = False
-    ban_words_file = "ban_words.txt"
+    ban_words_file = Path(__file__).resolve().parent.parent / 'media' / 'ban_words.txt'
 
     # Читаем список бан-слов из файла
     with open(ban_words_file, 'r', encoding='utf-8') as f:
