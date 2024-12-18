@@ -16,7 +16,7 @@ ADMIN_ID = os.getenv("ADMIN_ID")
 async def cmd_cancel(message: types.Message, state: FSMContext):
     if await state.get_state() is not None:
         await state.clear()
-        await message.reply("Действие отменено. Состояние сброшено.")
+        await message.reply("Действие отменено.")
     else:
         await message.reply("Нет активного действия для отмены.")
 
