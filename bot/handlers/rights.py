@@ -3,7 +3,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import db, secrets
+import secrets
+from bot import db
 
 rght_router = Router()
 

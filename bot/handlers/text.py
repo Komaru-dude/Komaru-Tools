@@ -1,8 +1,9 @@
-import db, re
+import re
 from aiogram import types, F, Router, Bot
 from aiogram.types import FSInputFile
 from aiogram.exceptions import TelegramBadRequest
 from datetime import datetime, timedelta
+from bot import db
 
 txt_router = Router()
 

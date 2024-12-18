@@ -1,8 +1,9 @@
-import db, time, psutil, re
+import time, psutil, re
 from aiogram import types, Router
 from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
+from bot import db
 
 base_router = Router()
 # Списки хранения данных для /status
