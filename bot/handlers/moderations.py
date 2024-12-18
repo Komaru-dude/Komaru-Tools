@@ -1,5 +1,5 @@
-import db
-from aiogram import F, Router, types, Bot
+from bot import db
+from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
 

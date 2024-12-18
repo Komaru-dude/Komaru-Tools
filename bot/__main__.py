@@ -2,10 +2,10 @@ import asyncio, logging, os
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from dotenv import load_dotenv
-from handlers.moderations import mod_router
-from handlers.rights import rght_router
-from handlers.basic import base_router
-from handlers.text import txt_router
+from .handlers.moderations import mod_router
+from .handlers.rights import rght_router
+from .handlers.basic import base_router
+from .handlers.text import txt_router
 
 # Запуск процесса поллинга новых апдейтов
 async def main():

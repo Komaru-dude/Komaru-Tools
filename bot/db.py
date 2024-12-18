@@ -311,3 +311,14 @@ def add_first_name(user_id, first_name):
     cursor.execute('''UPDATE users SET first_name = ? WHERE user_id = ?''', (first_name, user_id))
     conn.commit()
     conn.close()
+
+def user_have_first_name(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT first_name FROM users WHERE user_id = ?', (user_id,))
+    exists = cursor.fetchone()
+    conn.close()
+    if not exists == '':
+        return False
+    else:
+        return True
