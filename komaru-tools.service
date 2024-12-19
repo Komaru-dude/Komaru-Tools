@@ -1,3 +1,4 @@
+# Переделайте под себя если планируете использовать
 [Unit]
 Description=Komaru Tools bot
 After=network.target

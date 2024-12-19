@@ -78,7 +78,7 @@ async def process_rank(message: types.Message, state: FSMContext):
     await state.set_state(SetRankState.waiting_for_rank)  # Ожидаем выбор пользователя
 
 @rght_router.callback_query(SetRankState.waiting_for_rank)
-async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMContext):
+async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMContext, bot: Bot):
     rank = callback_query.data  # Получаем выбранный ранг
 
     # Получаем данные из FSM
@@ -86,7 +86,7 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     user_id = data.get("user_id")
 
     # Логика смены ранга
-    print(f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
+    await bot.send_message(ADMIN_ID, text=f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
     db.set_rank(user_id, rank)
     
     # Отправляем подтверждение

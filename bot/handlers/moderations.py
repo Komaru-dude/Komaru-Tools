@@ -41,7 +41,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
         db.update_user_warns(target_user_id, reason)
         await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
                             f"Причина: {reason}")
-        await message.delete()
+        await message.reply_to_message.delete()
     else:
         # Разделяем команду и аргументы
         parts = message.text.split(' ', 2)
@@ -117,6 +117,7 @@ async def cmd_mute(message: types.Message, bot: Bot):
         duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
         reason = parts[2] if len(parts) > 2 else "Без причины"
         until_date = datetime.now() + duration if duration else None
+        await message.reply_to_message.delete()
     else:
         if len(parts) < 2:
             await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
@@ -151,8 +152,8 @@ async def cmd_mute(message: types.Message, bot: Bot):
             until_date=until_date
         )
         db.update_user_mutes(target_user_id, reason)
-        time_str = f"до {until_date}" if until_date else "навсегда"
-        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}.\n" 
+        time_str = f"до {until_date.strftime('%Y-%m-%d %H:%M:%S')}" if until_date else "навсегда"
+        await message.reply(f"Пользователь с ID {target_user_id} был замьючен {time_str}.\n" 
                             f"Причина: {reason}")
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя.")
@@ -177,6 +178,7 @@ async def cmd_ban(message: types.Message, bot: Bot):
         ban_duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
         reason = parts[2] if len(parts) > 2 else "Без причины"
         until_date = datetime.now() + ban_duration if ban_duration else None
+        await message.reply_to_message.delete()
     else:
         if len(parts) < 2:
             await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
