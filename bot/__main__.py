@@ -19,9 +19,12 @@ async def main():
     bot = Bot(token, ParseMode=ParseMode.MARKDOWN_V2)
     # Диспетчер
     dp = Dispatcher()
-    # Включаем роутеры
-    dp.include_routers(mod_router, rght_router, base_router)
-    dp.include_router(txt_router)
+    # Регистрируем хэндлеры
+    dp.include_routers(mod_router,
+                       rght_router,
+                       base_router,
+                       txt_router
+    )
     # Наконец, запуск
     await dp.start_polling(bot)
 

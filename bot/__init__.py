@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 
 # Загрузка переменных из .env
-load_dotenv()
+if not load_dotenv():
+    raise RuntimeError(".env файл не найден, создайте его прежде чем начать")
 
 # Переменные окружения
 API_TOKEN = os.getenv('BOT_API_TOKEN')
