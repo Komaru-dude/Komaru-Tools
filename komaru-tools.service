@@ -1,0 +1,17 @@
+[Unit]
+Description=Komaru Tools bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/panchaniche/Komaru-Tools
+EnvironmentFile=/home/panchaniche/Komaru-Tools/.env
+ExecStartPre=/usr/bin/git -C /home/panchaniche/Komaru-Tools pull
+ExecStart=/home/panchaniche/Komaru-Tools/venv/bin/python -m bot
+KillMode=process
+Restart=always
+RestartSec=10
+User=panchaniche
+
+[Install]
+WantedBy=multi-user.target
