@@ -41,7 +41,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
         db.update_user_warns(target_user_id, reason)
         await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
                             f"Причина: {reason}")
-        await message.delete()
+        await message.reply_to_message.delete()
     else:
         # Разделяем команду и аргументы
         parts = message.text.split(' ', 2)
