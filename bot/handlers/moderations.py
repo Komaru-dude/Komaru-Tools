@@ -152,8 +152,8 @@ async def cmd_mute(message: types.Message, bot: Bot):
             until_date=until_date
         )
         db.update_user_mutes(target_user_id, reason)
-        time_str = f"до {until_date}" if until_date else "навсегда"
-        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на {time_str}.\n" 
+        time_str = f"до {until_date.strftime('%Y-%m-%d %H:%M:%S')}" if until_date else "навсегда"
+        await message.reply(f"Пользователь с ID {target_user_id} был замьючен {time_str}.\n" 
                             f"Причина: {reason}")
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя.")
