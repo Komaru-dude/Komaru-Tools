@@ -64,7 +64,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
                     warn_limit = user_data[10]
-                    if warns > warn_limit:
+                    if warns >= warn_limit:
                         until_date = datetime.now() + timedelta(hours=2)
                         await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
                         db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
