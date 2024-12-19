@@ -117,6 +117,7 @@ async def cmd_mute(message: types.Message, bot: Bot):
         duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
         reason = parts[2] if len(parts) > 2 else "Без причины"
         until_date = datetime.now() + duration if duration else None
+        await message.reply_to_message.delete()
     else:
         if len(parts) < 2:
             await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
@@ -177,6 +178,7 @@ async def cmd_ban(message: types.Message, bot: Bot):
         ban_duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
         reason = parts[2] if len(parts) > 2 else "Без причины"
         until_date = datetime.now() + ban_duration if ban_duration else None
+        await message.reply_to_message.delete()
     else:
         if len(parts) < 2:
             await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
