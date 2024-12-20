@@ -1,12 +1,15 @@
-import re
+import re, os
 from aiogram import types, F, Router, Bot
 from aiogram.types import FSInputFile
 from aiogram.exceptions import TelegramBadRequest
 from datetime import datetime, timedelta
 from bot import db
 from pathlib import Path
+from dotenv import load_dotenv
 
+load_dotenv()
 txt_router = Router()
+ADMIN_ID = os.getenv("ADMIN_ID")
 
 @txt_router.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
@@ -53,7 +56,7 @@ async def message_handler(message: types.Message, bot: Bot):
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
-        print(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
+        await bot.send_message(f"Найдено запрещённое слово в сообщении пользователя {user_id}")
         new_time = datetime.now() + timedelta(hours=2)
         timestamp = new_time.timestamp()
         try:
