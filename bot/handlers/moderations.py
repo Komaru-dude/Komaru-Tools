@@ -39,6 +39,9 @@ async def warn_cmd(message: types.Message, bot: Bot):
         if not db.user_exists(target_user_id):
             db.add_user(target_user_id)
         db.update_user_warns(target_user_id, reason)
+        user_data = db.get_user_data(target_user_id)
+        warns = user_data[2]
+        warn_limit = user_data[10]
         if warns >= warn_limit:
             until_date = datetime.now() + timedelta(hours=2)
             await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissons(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
