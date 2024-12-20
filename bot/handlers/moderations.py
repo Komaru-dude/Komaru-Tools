@@ -39,6 +39,12 @@ async def warn_cmd(message: types.Message, bot: Bot):
         if not db.user_exists(target_user_id):
             db.add_user(target_user_id)
         db.update_user_warns(target_user_id, reason)
+        if warns >= warn_limit:
+            until_date = datetime.now() + timedelta(hours=2)
+            await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissons(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
+            db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
+            db.update_user_warn_limit(target_user_id, 3)
+            await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
         await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
                             f"Причина: {reason}")
         await message.reply_to_message.delete()
