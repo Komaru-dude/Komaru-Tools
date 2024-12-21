@@ -26,7 +26,8 @@ async def somebody_added(message: types.Message):
             db.add_username(user_id, username) 
         if not db.get_first_name_by_id(user_id):
             db.add_first_name(user_id=user_id, first_name=first_name)
-        xiao_hello_image = FSInputFile("xiao.jpg")
+        xiao_file_name = Path(__file__).resolve().parent.parent / 'media' / 'xiao.jpg'
+        xiao_hello_image = FSInputFile(xiao_file_name)
         await message.reply_photo(
             xiao_hello_image,
             caption=f"Гойда {user.full_name}, добро пожаловать в {chat_name}.\n\n"

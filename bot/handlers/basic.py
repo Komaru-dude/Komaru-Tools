@@ -4,6 +4,7 @@ from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from bot import db
+from pathlib import Path
 
 base_router = Router()
 # Списки хранения данных для /status
@@ -13,7 +14,8 @@ start_time = time.time()
 
 @base_router.message(Command("rules"))
 async def cmd_rules(message: Message):
-    komaru_rules_video = FSInputFile("rules.mp4")
+    komaru_file_name = Path(__file__).resolve().parent.parent / 'media' / 'rules.mp4'
+    komaru_rules_video = FSInputFile(komaru_file_name)
     # Отправляем видео с правилами чата
     caption = (
         f"Привет, {message.from_user.full_name}\n"
