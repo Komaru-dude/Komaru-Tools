@@ -332,7 +332,7 @@ def update_rep(user_id, mode, value=None):
     if mode in ["manual_add", "manual_rem"] and (not value or not isinstance(value, int)):
         raise ValueError("Для режимов manual_add и manual_rem необходимо указать целое значение для value.")
 
-    conn = sqlite3.connect()
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     if value is None and mode == "auto_add":
