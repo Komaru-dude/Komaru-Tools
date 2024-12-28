@@ -96,6 +96,7 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
 @rght_router.message(Command('setprefix'))
 async def cmd_setprefix(message: types.Message, bot: Bot):
     user_id = message.from_user.id
+    delete_prefix = False  # По умолчанию префикс не удаляется
 
     # Проверка прав пользователя
     if not db.has_permission(user_id, 3):
@@ -112,41 +113,44 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
         return
 
     # Разбиваем текст команды
-    parts = message.text.split(' ', 2)  # Делаем split на максимум 3 части: /setprefix <target> <prefix>
+    parts = message.text.split(' ', 2)  # /setprefix <target> <prefix>
 
-    # Проверка: ответ на сообщение или указан username/ID
+    if len(parts) < 2:
+        await message.reply("Некорректный формат. Используйте /setprefix <target> <prefix>.")
+        return
+
+    # Обработка целевого пользователя
+    user_input = parts[1]
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
-        if len(parts) < 2:
-            await message.reply("Ошибка: необходимо указать префикс для установки.")
+    elif user_input.startswith('@'):  # Если указан username
+        username = user_input[1:]
+        target_user_id = db.get_user_id_by_username(username)
+        if not target_user_id:
+            await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
             return
-        prefix = parts[1]
+    elif user_input.isdigit():  # Если указан ID
+        target_user_id = int(user_input)
     else:
-        if len(parts) < 3:
-            await message.reply("Ошибка: необходимо указать цель и префикс. Формат: /setprefix <target> <prefix>")
-            return
+        await message.reply("Некорректный формат. Укажите корректный ID или username.")
+        return
 
-        user_input = parts[1]
-        prefix = parts[2]  # Префикс берется как последний аргумент
+    # Проверка на наличие префикса
+    prefix = parts[2] if len(parts) > 2 else None
+    if not prefix:
+        delete_prefix = True
 
-        if user_input.startswith('@'): # Если указан username
-            username = user_input[1:]
-            target_user_id = db.get_user_id_by_username(username)
-            if not target_user_id:
-                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
-                return
-        elif user_input.isdigit(): # Если указан ID
-            target_user_id = int(user_input)
-        else:
-            await message.reply("Некорректный формат. Используйте /setprefix <target> <prefix>.")
-            return
-
-    # Логика установки префикса
+    # Логика установки/удаления префикса
     try:
-        await bot.promote_chat_member(message.chat.id, target_user_id)
-        await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
-        db.set_prefix(target_user_id, prefix)
-        await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
+        if delete_prefix:
+            await bot.promote_chat_member(message.chat.id, target_user_id)
+            db.set_prefix(target_user_id, "Отсутствует")
+            await message.reply(f"Префикс успешно удалён для пользователя с ID: {target_user_id}")
+        else:
+            await bot.promote_chat_member(message.chat.id, target_user_id, can_invite_users=True)
+            await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
+            db.set_prefix(target_user_id, prefix)
+            await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя с ID: {target_user_id}.")
     except Exception as e:
         await message.reply(f"Ошибка при установке префикса: {e}")
 

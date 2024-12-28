@@ -4,6 +4,7 @@ from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from bot import db
+from pathlib import Path
 
 base_router = Router()
 # Списки хранения данных для /status
@@ -13,7 +14,8 @@ start_time = time.time()
 
 @base_router.message(Command("rules"))
 async def cmd_rules(message: Message):
-    komaru_rules_video = FSInputFile("rules.mp4")
+    komaru_file_name = Path(__file__).resolve().parent.parent / 'media' / 'rules.mp4'
+    komaru_rules_video = FSInputFile(komaru_file_name)
     # Отправляем видео с правилами чата
     caption = (
         f"Привет, {message.from_user.full_name}\n"
@@ -46,7 +48,7 @@ async def cmd_start(message: types.Message):
 
 @base_router.message(Command("status"))
 async def cmd_status(message: types.Message):
-    global start_time  # Переместил global сюда
+    global start_time
 
     ping_start_time = time.monotonic()
     sent_message = await message.reply("⏳")
@@ -124,14 +126,13 @@ async def cmd_info(message: types.Message):
     # Формируем текст с информацией о пользователе
     user_info = (
         f"Информация о пользователе: {clickable_name}\n"
-        f"Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n"
-        f"Юзернейм: {user_data[1]}\n"
-        f"Айди: {user_data[0]}\n"
-        f"Ранг: {user_data[6]}\n"
-        f"Кол-во сообщений: {user_data[8]}\n"
-        f"Репутация: {user_data[5]}\n"
-        f"Демотиваторы: {user_data[9]}\n"
-        f"Префикс: {user_data[7]}"
+        f"Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n\n"
+        f"🆔 Айди: {user_data[0]}\n"
+        f"🏅 Ранг: {user_data[6]}\n"
+        f"💬 Кол-во сообщений: {user_data[8]}\n"
+        f"💎 Репутация: {user_data[5]}\n"
+        f"🖼 Демотиваторы: {user_data[9]}\n"
+        f"🏷️ Префикс: {user_data[7]}"
     )
 
     # Отправляем сообщение с информацией
