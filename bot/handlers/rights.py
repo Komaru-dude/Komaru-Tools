@@ -115,27 +115,29 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
     # Разбиваем текст команды
     parts = message.text.split(' ', 2)  # Делаем split на максимум 3 части: /setprefix <target> <prefix>
 
-    # Проверка: ответ на сообщение или указан username/ID
+    # Проверка наличия минимального количества аргументов
+    if len(parts) < 2 and not message.reply_to_message:
+        await message.reply("Некорректный формат. Используйте /setprefix <target> <prefix> или ответьте на сообщение.")
+        return
+
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
-        if len(parts) < 2:
-            delete_prefix = True
-        else:
-            prefix = parts[1]
+        prefix = parts[1] if len(parts) > 1 else None
     else:
-        if len(parts) < 2:
-            delete_prefix = True
-        else:
-            prefix = parts[2]  # Префикс берется как последний аргумент
-        user_input = parts[1]
+        if len(parts) < 3:
+            await message.reply("Некорректный формат. Используйте /setprefix <target> <prefix>.")
+            return
 
-        if user_input.startswith('@'): # Если указан username
+        user_input = parts[1]
+        prefix = parts[2]
+
+        if user_input.startswith('@'):  # Если указан username
             username = user_input[1:]
             target_user_id = db.get_user_id_by_username(username)
             if not target_user_id:
                 await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
                 return
-        elif user_input.isdigit(): # Если указан ID
+        elif user_input.isdigit():  # Если указан ID
             target_user_id = int(user_input)
         else:
             await message.reply("Некорректный формат. Используйте /setprefix <target> <prefix>.")
@@ -143,7 +145,7 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
 
     # Логика установки префикса
     try:
-        if delete_prefix:
+        if not prefix:
             await bot.promote_chat_member(message.chat.id, target_user_id)
             db.set_prefix(target_user_id, "Отсутствует")
             await message.reply(f"Префикс успешно удалён для пользователя с ID: {target_user_id}")
