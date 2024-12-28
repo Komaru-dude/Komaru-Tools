@@ -324,7 +324,7 @@ def user_have_first_name(user_id):
     else:
         return True
 
-def update_rep(user_id, value, mode):
+def update_rep(user_id, mode, value=None):
     if not user_id or not isinstance(user_id, int):
         raise ValueError("Неверный user_id. Он должен быть целым числом.")
     if mode not in ["auto_add", "manual_add", "manual_rem"]:
@@ -334,6 +334,9 @@ def update_rep(user_id, value, mode):
 
     conn = sqlite3.connect()
     cursor = conn.cursor()
+
+    if value is None and mode == "auto_add":
+        value = random.randint(1, 6)
     
     if mode == "auto_add":
         add = random.randint(1, 6)
