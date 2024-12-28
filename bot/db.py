@@ -13,7 +13,7 @@ def create_db():
                         mutes INTEGER DEFAULT 0,
                         reputation INTEGER DEFAULT 0,
                         rank TEXT DEFAULT 'Участник',
-                        prefix TEXT DEFAULT '',
+                        prefix TEXT DEFAULT 'Отсутствует',
                         message_count INTEGER DEFAULT 0,
                         demotivators INTEGER DEFAULT 0,
                         warn_limit INTEGER DEFAULT 3,
