@@ -96,6 +96,7 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
 @rght_router.message(Command('setprefix'))
 async def cmd_setprefix(message: types.Message, bot: Bot):
     user_id = message.from_user.id
+    delete_prefix = None
 
     # Проверка прав пользователя
     if not db.has_permission(user_id, 3):
@@ -118,8 +119,7 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
         if len(parts) < 2:
-            await message.reply("Ошибка: необходимо указать префикс для установки.")
-            return
+            delete_prefix = True
         prefix = parts[1]
     else:
         if len(parts) < 3:
@@ -143,10 +143,15 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
 
     # Логика установки префикса
     try:
-        await bot.promote_chat_member(message.chat.id, target_user_id, can_pin_messages=True)
-        await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
-        db.set_prefix(target_user_id, prefix)
-        await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
+        if delete_prefix:
+            await bot.promote_chat_member(message.chat.id, target_user_id)
+            db.set_prefix(target_user_id, "Отсутствует")
+            await message.reply(f"Префикс успешно удалён для пользователя с ID: {target_user_id}")
+        else:
+            await bot.promote_chat_member(message.chat.id, target_user_id, can_pin_messages=True)
+            await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
+            db.set_prefix(target_user_id, prefix)
+            await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя с ID: {target_user_id}.")
     except Exception as e:
         await message.reply(f"Ошибка при установке префикса: {e}")
 
