@@ -47,7 +47,9 @@ async def warn_cmd(message: types.Message, bot: Bot):
             await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
             db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
             db.update_user_warn_limit(target_user_id, 3)
+            db.update_rep(user_id, mode="manual_rem", value=3)
             await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
+        db.update_rep(user_id, mode="manual_rem", value=5)
         await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
                             f"Причина: {reason}")
         await message.reply_to_message.delete()
@@ -89,6 +91,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                     db.update_user_warns(target_user_id, reason)
                     await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
                                          f"Причина: {reason}")
+                    db.update_rep(user_id, mode="manual_rem", value=5)
                     user_data = db.get_user_data(target_user_id)
                     warns = user_data[2]
                     warn_limit = user_data[10]
@@ -97,6 +100,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                         await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
                         db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
                         db.update_user_warn_limit(target_user_id, 3)
+                        db.update_rep(user_id, mode="manual_rem", value=3)
                         await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
                 except Exception as e:
                     await message.reply(f"Не удалось найти пользователя с ID {target_user_id}.")
@@ -164,6 +168,7 @@ async def cmd_mute(message: types.Message, bot: Bot):
         time_str = f"до {until_date.strftime('%Y-%m-%d %H:%M:%S')}" if until_date else "навсегда"
         await message.reply(f"Пользователь с ID {target_user_id} был замьючен {time_str}.\n" 
                             f"Причина: {reason}")
+        db.update_rep(user_id, mode="manual_rem", value=10)
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя.")
         await bot.send_message(chat_id=ADMIN_ID, 
@@ -218,6 +223,7 @@ async def cmd_ban(message: types.Message, bot: Bot):
         await bot.ban_chat_member(chat_id=message.chat.id, user_id=target_user_id, until_date=until_date)
         ban_time_str = f"до {until_date}" if until_date else "навсегда"
         await message.reply(f"Пользователь {target_user_id} был забанен {ban_time_str}.\nПричина: {reason}")
+        db.update_rep(user_id, mode="manual_rem", value=15)
     except Exception as e:
         await message.reply(f"Не удалось забанить пользователя.")
         await bot.send_message(chat_id=ADMIN_ID, 

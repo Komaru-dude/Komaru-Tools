@@ -1,4 +1,4 @@
-import re, os
+import re, os, random
 from aiogram import types, F, Router, Bot
 from aiogram.types import FSInputFile
 from aiogram.exceptions import TelegramBadRequest
@@ -71,6 +71,14 @@ async def message_handler(message: types.Message, bot: Bot):
             message.reply(f"Не удалось ограничить пользователя из-за ошибки телеграмма: {e}")
         except:
             message.reply("Не удалось ограничить пользователя.")
+    else:
+        raw_data = db.get_user_data(user_id)
+        message_count = raw_data[8]
+        old_need_msg = raw_data[13]
+        if old_need_msg <= message_count:
+            new_need_msg = message_count + random.randint(4, 15)
+            db.update_need_msg(user_id, new_need_msg)
+            db.update_rep(user_id, mode="auto_add")
 
 def check_ban_words(text: str):
     mute_user = False
