@@ -147,7 +147,7 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
             db.set_prefix(target_user_id, "Отсутствует")
             await message.reply(f"Префикс успешно удалён для пользователя с ID: {target_user_id}")
         else:
-            await bot.promote_chat_member(message.chat.id, target_user_id, can_pin_messages=False)
+            await bot.promote_chat_member(message.chat.id, target_user_id, can_invite_users=True)
             await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
             db.set_prefix(target_user_id, prefix)
             await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя с ID: {target_user_id}.")
