@@ -143,7 +143,7 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
 
     # Логика установки префикса
     try:
-        await bot.promote_chat_member(message.chat.id, target_user_id)
+        await bot.promote_chat_member(message.chat.id, target_user_id, can_pin_messages=True)
         await bot.set_chat_administrator_custom_title(chat_id=message.chat.id, user_id=target_user_id, custom_title=prefix)
         db.set_prefix(target_user_id, prefix)
         await message.reply(f"Префикс '{prefix}' успешно установлен для пользователя ID: {target_user_id}.")
