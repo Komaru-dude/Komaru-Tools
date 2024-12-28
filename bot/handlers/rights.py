@@ -120,14 +120,14 @@ async def cmd_setprefix(message: types.Message, bot: Bot):
         target_user_id = message.reply_to_message.from_user.id
         if len(parts) < 2:
             delete_prefix = True
-        prefix = parts[1]
+        else:
+            prefix = parts[1]
     else:
-        if len(parts) < 3:
-            await message.reply("Ошибка: необходимо указать цель и префикс. Формат: /setprefix <target> <prefix>")
-            return
-
+        if len(parts) < 2:
+            delete_prefix = True
+        else:
+            prefix = parts[2]  # Префикс берется как последний аргумент
         user_input = parts[1]
-        prefix = parts[2]  # Префикс берется как последний аргумент
 
         if user_input.startswith('@'): # Если указан username
             username = user_input[1:]
