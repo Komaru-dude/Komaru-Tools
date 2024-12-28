@@ -1,4 +1,4 @@
-import sqlite3, os, json, time
+import sqlite3, os, json, time, random
 
 DB_PATH = 'users.db'
 
@@ -322,3 +322,25 @@ def user_have_first_name(user_id):
         return False
     else:
         return True
+
+def auto_repadd(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    add = random.randint(1, 6)
+    cursor.execute('''UPDATE users SET reputation = reputation + ? WHERE user_id = ?''', (add, user_id))
+    conn.commit()
+    conn.close()
+
+def manual_repadd(user_id, add):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET reputation = reputation + ? WHERE user_id = ?''', (add, user_id))
+    conn.commit()
+    conn.close()
+
+def manual_reprem(user_id, rem):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET reputation = reputation - ? WHERE user_id  = ?''', (rem, user_id))
+    conn.commit()
+    conn.close()
