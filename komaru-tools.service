@@ -12,7 +12,7 @@ ExecStart=/home/panchan/Komaru-Tools/venv/bin/python -m bot
 KillMode=process
 Restart=always
 RestartSec=10
-User=panchaniche
+User=panchan
 
 [Install]
 WantedBy=multi-user.target
