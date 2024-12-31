@@ -107,7 +107,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                     await bot.send_message(chat_id=ADMIN_ID, 
                                            text=f"Во время обработки команды /warn произошла ошибка: {e}")
             else:
-                await message.reply("Некорректный формат. Используйте /warn @username или /warn ID причина.")
+                await message.reply("Некорректный формат. Используйте /warn @username причина или /warn ID причина.")
         else:
             await message.reply("Синтаксис команды некорректный.\n"
                                  "Используйте /warn @username причина или /warn ID причина.")
@@ -318,4 +318,12 @@ async def cmd_history(message: types.Message):
     )
     await message.reply(response)
 
-
+@mod_router.message(Command("repadd"))
+async def cmd_repadd(message: types.Message):
+    user_id = message.from_user.id
+    text = message.text
+    parts = text.split(' ', 2)
+    if not db.has_permission(user_id, 2):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
+    

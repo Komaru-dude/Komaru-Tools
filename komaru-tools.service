@@ -5,10 +5,10 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/panchaniche/Komaru-Tools
-EnvironmentFile=/home/panchaniche/Komaru-Tools/.env
-ExecStartPre=/usr/bin/git -C /home/panchaniche/Komaru-Tools pull
-ExecStart=/home/panchaniche/Komaru-Tools/venv/bin/python -m bot
+WorkingDirectory=/home/panchan/Komaru-Tools
+EnvironmentFile=/home/panchan/Komaru-Tools/.env
+ExecStartPre=/usr/bin/git -C /home/panchan/Komaru-Tools pull
+ExecStart=/home/panchan/Komaru-Tools/venv/bin/python -m bot
 KillMode=process
 Restart=always
 RestartSec=10
