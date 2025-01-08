@@ -242,7 +242,7 @@ async def cmd_unmute(message: types.Message, bot: Bot):
         return
     
     target_input = parts[1]
-    print(target_id)
+    print(target_input)
     if target_input.startswith("@"):
         target_id = db.get_user_id_by_username(target_input[1:])
     elif text.isdigit():
