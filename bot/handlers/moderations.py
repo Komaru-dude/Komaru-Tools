@@ -242,10 +242,10 @@ async def cmd_unmute(message: types.Message, bot: Bot):
         return
     
     target_input = parts[1]
-    print(target_input)
+
     if target_input.startswith("@"):
         target_id = db.get_user_id_by_username(target_input[1:])
-    elif text.isdigit():
+    elif target_input.isdigit():
         target_id = int(target_input)
     else:
         await message.reply("Некорректный формат. Используйте /unmute <username/ID>.")
@@ -282,7 +282,7 @@ async def cmd_unmute(message: types.Message, bot: Bot):
         except Exception as e:
             message.reply("Возникла ошибка при получении ID пользователя.")
 
-    elif text.isdigit():
+    elif target_input.isdigit():
         target_id = int(target_input)
     else:
         await message.reply("Некорректный формат. Используйте /unban <username/ID>.")
