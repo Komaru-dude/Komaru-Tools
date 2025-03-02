@@ -1,8 +1,10 @@
+import os, subprocess, sys
 from bot import db
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
-import os
+from .. import ADMIN_ID
+from dotenv import load_dotenv
 
 mod_router = Router()
 ADMIN_ID = os.getenv("ADMIN_ID")
@@ -327,3 +329,36 @@ async def cmd_repadd(message: types.Message):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
+@mod_router.message(Command("/restart"))
+async def restart_bot(message: types.Message):
+    if not db.has_permission(message.from_user.id, 2):
+        await message.reply("У вас нет прав для выполнения этой команды.")
+        return
+    
+    # Сохраняем ID чата в .env
+    os.environ["RESTART_CHAT_ID"] = str(message.chat.id)
+    with open(".env", "r") as f:
+        lines = f.readlines()
+    
+    with open(".env", "w") as f:
+        found = False
+        for line in lines:
+            if line.startswith("RESTART_CHAT_ID="):
+                f.write(f"RESTART_CHAT_ID={message.chat.id}\n")
+                found = True
+            else:
+                f.write(line)
+        
+        if not found:
+            f.write(f"\nRESTART_CHAT_ID={message.chat.id}\n")
+
+    await message.answer("Перезапускаюсь... 🔄")
+
+    if os.getenv("INVOCATION_ID"):
+        subprocess.run(["systemctl", "--user", "restart", "bot.service"])
+        return
+
+    if "SUPERVISOR_PROCESS_NAME" in os.environ:
+        os._exit(1)
+
+    os.execv(sys.executable, ['python'] + sys.argv)

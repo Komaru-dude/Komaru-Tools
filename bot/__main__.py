@@ -7,6 +7,22 @@ from .handlers.basic import base_router
 from .handlers.text import txt_router
 from . import API_TOKEN
 
+# Функция отправки сообщения после перезапуска
+async def send_restart_message(bot: Bot):
+    chat_id = os.getenv("RESTART_CHAT_ID")
+    
+    if chat_id and chat_id.isdigit():
+        await bot.send_message(chat_id, "✅ Бот успешно перезапущен!")
+        
+        # Удаляем RESTART_CHAT_ID из .env
+        with open(".env", "r") as f:
+            lines = f.readlines()
+        
+        with open(".env", "w") as f:
+            for line in lines:
+                if not line.startswith("RESTART_CHAT_ID"):
+                    f.write(line)
+
 # Запуск процесса поллинга новых апдейтов
 async def main():
     # Включаем логирование
@@ -23,6 +39,8 @@ async def main():
                        base_router,
                        txt_router
     )
+    # Отправляем сообщение о перезапуске
+    await send_restart_message(bot)
     # Наконец, запуск
     await dp.start_polling(bot)
 
