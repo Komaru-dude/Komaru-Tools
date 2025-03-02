@@ -1,4 +1,4 @@
-import sqlite3, os, json, time
+import sqlite3, os, json, time, random
 
 DB_PATH = 'users.db'
 
@@ -18,12 +18,13 @@ def create_db():
                         demotivators INTEGER DEFAULT 0,
                         warn_limit INTEGER DEFAULT 3,
                         history TEXT DEFAULT '',
-                        first_name TEXT DEFAULT ''
+                        first_name TEXT DEFAULT '',
+                        need_msg INTEGER DEFAULT 10
                     )''')
     conn.commit()
     conn.close()
 
-# Проверяем существование базы данных и создаём её при необходимости
+# Проверяем существование базы данных и создание её при необходимости
 if not os.path.exists(DB_PATH):
     create_db()
 
@@ -79,7 +80,7 @@ def add_username(user_id, username):
 def get_username(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''SELECT history FROM users WHERE user_id = ?''', (user_id,))
+    cursor.execute('''SELECT username FROM users WHERE user_id = ?''', (user_id,))
     result = cursor.fetchone()
     conn.close()
     return result
@@ -322,3 +323,35 @@ def user_have_first_name(user_id):
         return False
     else:
         return True
+
+def update_rep(user_id, mode, value=None):
+    if not user_id or not isinstance(user_id, int):
+        raise ValueError("Неверный user_id. Он должен быть целым числом.")
+    if mode not in ["auto_add", "manual_add", "manual_rem"]:
+        raise ValueError(f"Режим {mode} некорректен, доступные режимы: auto_add, manual_add, manual_rem.")
+    if mode in ["manual_add", "manual_rem"] and (not value or not isinstance(value, int)):
+        raise ValueError("Для режимов manual_add и manual_rem необходимо указать целое значение для value.")
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    if value is None and mode == "auto_add":
+        value = random.randint(1, 6)
+    
+    if mode == "auto_add":
+        add = random.randint(1, 6)
+        cursor.execute('''UPDATE users SET reputation = reputation + ? WHERE user_id = ?''', (add, user_id))
+    elif mode == "manual_add":
+        cursor.execute('''UPDATE users SET reputation = reputation + ? WHERE user_id = ?''', (value, user_id))
+    elif mode == "manual_rem":
+        cursor.execute('''UPDATE users SET reputation = reputation - ? WHERE user_id = ?''', (value, user_id))
+    
+    conn.commit()
+    conn.close()
+
+def update_need_msg(user_id, count_msg):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users SET need_msg = ? WHERE user_id = ?''', (count_msg, user_id))
+    conn.commit()
+    conn.close()

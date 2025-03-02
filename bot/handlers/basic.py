@@ -32,10 +32,6 @@ async def cmd_rules(message: Message):
     )
     await message.reply_video(komaru_rules_video, caption=caption)
 
-@base_router.message(Command('privetbradok'))
-async def cmd_privebradok(message: types.Message):
-    await message.reply("Приве брадок!")
-
 @base_router.message(Command("start"))
 async def cmd_start(message: types.Message):
     user_id = message.from_user.id
@@ -121,6 +117,7 @@ async def cmd_info(message: types.Message):
 
     # Получаем данные из db
     user_data = db.get_user_data(user_id)
+    msg_to_rep_up = user_data[13] - user_data[8]
     if not user_id == user_data[0]:
         db.update_user_id(user_data[0], user_id)
     # Формируем текст с информацией о пользователе
@@ -131,6 +128,7 @@ async def cmd_info(message: types.Message):
         f"🏅 Ранг: {user_data[6]}\n"
         f"💬 Кол-во сообщений: {user_data[8]}\n"
         f"💎 Репутация: {user_data[5]}\n"
+        f"🌀 Сообщений до повышения репутации: {msg_to_rep_up}\n"
         f"🖼 Демотиваторы: {user_data[9]}\n"
         f"🏷️ Префикс: {user_data[7]}"
     )
