@@ -32,10 +32,6 @@ async def cmd_rules(message: Message):
     )
     await message.reply_video(komaru_rules_video, caption=caption)
 
-@base_router.message(Command('privetbradok'))
-async def cmd_privebradok(message: types.Message):
-    await message.reply("Приве брадок!")
-
 @base_router.message(Command("start"))
 async def cmd_start(message: types.Message):
     user_id = message.from_user.id
