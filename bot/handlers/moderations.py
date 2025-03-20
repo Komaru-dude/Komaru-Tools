@@ -329,7 +329,7 @@ async def cmd_repadd(message: types.Message):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
-@mod_router.message(Command("/restart"))
+@mod_router.message(Command("restart"))
 async def restart_bot(message: types.Message):
     if not db.has_permission(message.from_user.id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
