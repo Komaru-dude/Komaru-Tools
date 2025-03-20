@@ -330,7 +330,7 @@ async def cmd_repadd(message: types.Message):
         return
     
 @mod_router.message(Command("restart"))
-async def restart_bot(message: types.Message):
+async def restart_bot(message: types.Message, bot: Bot):
     if not db.has_permission(message.from_user.id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
@@ -340,4 +340,9 @@ async def restart_bot(message: types.Message):
     
     await message.answer("Перезапускаюсь... 🔄")
 
-    subprocess.call(["sudo", "systemctl", "restart", "telegram-bot"])
+    try:
+        subprocess.call(["sudo", "systemctl", "restart", "komaru-tools"]) # Обязательно проверьте наличие сервиса
+    except Exception as e:
+        await message.reply("Не удалось перезагрузиться!")
+        await bot.send_message(chat_id=OWNER_ID, 
+                                text=f"Во время обработки команды /restart произошла ошибка: {e}")
