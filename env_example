@@ -4,5 +4,5 @@
 # Токен API бота
 BOT_API_TOKEN=your_bot_api_token_here
 
-# ID администратора
-ADMIN_ID=your_admin_id_here
+# ID владельца
+OWNER_ID=your_OWNER_ID_here

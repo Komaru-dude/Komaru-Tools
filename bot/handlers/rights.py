@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 rght_router = Router()
-ADMIN_ID = os.getenv("ADMIN_ID")
+OWNER_ID = os.getenv("OWNER_ID")
 
 @rght_router.message(Command('cancel'))
 async def cmd_cancel(message: types.Message, state: FSMContext):
@@ -43,7 +43,7 @@ async def cmd_setrank(message: types.Message, state: FSMContext, bot: Bot):
     token = secrets.token_hex(lenght)
     TOKENS[user_id] = token
 
-    await bot.send_message(chat_id=ADMIN_ID, text=f"Токен для смены ранга: {token}, запросил {user_id}")
+    await bot.send_message(chat_id=OWNER_ID, text=f"Токен для смены ранга: {token}, запросил {user_id}")
     await message.answer("Введите токен для продолжения.")
     await state.set_state(SetRankState.waiting_for_token)
 
@@ -86,7 +86,7 @@ async def handle_rank_choice(callback_query: types.CallbackQuery, state: FSMCont
     user_id = data.get("user_id")
 
     # Логика смены ранга
-    await bot.send_message(ADMIN_ID, text=f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
+    await bot.send_message(OWNER_ID, text=f"Смена ранга: Пользователь {user_id} получает ранг '{rank}'.")
     db.set_rank(user_id, rank)
     
     # Отправляем подтверждение

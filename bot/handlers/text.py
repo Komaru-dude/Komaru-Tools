@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 txt_router = Router()
-ADMIN_ID = os.getenv("ADMIN_ID")
+OWNER_ID = os.getenv("OWNER_ID")
 
 @txt_router.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
@@ -57,7 +57,7 @@ async def message_handler(message: types.Message, bot: Bot):
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
-        await bot.send_message(chat_id=ADMIN_ID, text=f"Найдено запрещённое слово в сообщении пользователя {user_id}")
+        await bot.send_message(chat_id=OWNER_ID, text=f"Найдено запрещённое слово в сообщении пользователя {user_id}")
         new_time = datetime.now() + timedelta(hours=2)
         timestamp = new_time.timestamp()
         try:

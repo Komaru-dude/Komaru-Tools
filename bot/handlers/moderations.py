@@ -3,11 +3,11 @@ from bot import db
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
-from .. import ADMIN_ID
+from .. import OWNER_ID
 from dotenv import load_dotenv
 
 mod_router = Router()
-ADMIN_ID = os.getenv("ADMIN_ID")
+OWNER_ID = os.getenv("OWNER_ID")
 
 # Функция для парсинга времени
 def parse_time(time_str):
@@ -106,7 +106,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
                         await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
                 except Exception as e:
                     await message.reply(f"Не удалось найти пользователя с ID {target_user_id}.")
-                    await bot.send_message(chat_id=ADMIN_ID, 
+                    await bot.send_message(chat_id=OWNER_ID, 
                                            text=f"Во время обработки команды /warn произошла ошибка: {e}")
             else:
                 await message.reply("Некорректный формат. Используйте /warn @username причина или /warn ID причина.")
@@ -173,7 +173,7 @@ async def cmd_mute(message: types.Message, bot: Bot):
         db.update_rep(user_id, mode="manual_rem", value=10)
     except Exception as e:
         await message.reply(f"Не удалось замьютить пользователя.")
-        await bot.send_message(chat_id=ADMIN_ID, 
+        await bot.send_message(chat_id=OWNER_ID, 
                                 text=f"Во время обработки команды /mute произошла ошибка: {e}")
 
 @mod_router.message(Command('ban'))
@@ -228,7 +228,7 @@ async def cmd_ban(message: types.Message, bot: Bot):
         db.update_rep(user_id, mode="manual_rem", value=15)
     except Exception as e:
         await message.reply(f"Не удалось забанить пользователя.")
-        await bot.send_message(chat_id=ADMIN_ID, 
+        await bot.send_message(chat_id=OWNER_ID, 
                                 text=f"Во время обработки команды /ban произошла ошибка: {e}")
 
 @mod_router.message(Command('unmute'))
@@ -261,7 +261,7 @@ async def cmd_unmute(message: types.Message, bot: Bot):
         await message.reply(f"Пользователь {target_id} размьючен.")
     except Exception as e:
         await message.reply(f"Не удалось снять мьют.")
-        await bot.send_message(chat_id=ADMIN_ID, 
+        await bot.send_message(chat_id=OWNER_ID, 
                                 text=f"Во время обработки команды /unmute произошла ошибка: {e}")
 
 @mod_router.message(Command('unban'))
@@ -294,7 +294,7 @@ async def cmd_unmute(message: types.Message, bot: Bot):
         await message.reply(f"Пользователь {target_id} разбанен.")
     except Exception as e:
         await message.reply(f"Не удалось снять бан.")
-        await bot.send_message(chat_id=ADMIN_ID, 
+        await bot.send_message(chat_id=OWNER_ID, 
                                 text=f"Во время обработки команды /unban произошла ошибка: {e}")
 
 @mod_router.message(Command("history"))
