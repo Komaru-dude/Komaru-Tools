@@ -4,7 +4,7 @@ from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
 from .. import OWNER_ID
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 
 mod_router = Router()
 OWNER_ID = os.getenv("OWNER_ID")
@@ -335,30 +335,9 @@ async def restart_bot(message: types.Message):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
-    # Сохраняем ID чата в .env
-    os.environ["RESTART_CHAT_ID"] = str(message.chat.id)
-    with open(".env", "r") as f:
-        lines = f.readlines()
+    # Сохраняем ID чата
+    set_key('.env', 'RESTART_CHAT_ID', str(message.chat.id))
     
-    with open(".env", "w") as f:
-        found = False
-        for line in lines:
-            if line.startswith("RESTART_CHAT_ID="):
-                f.write(f"RESTART_CHAT_ID={message.chat.id}\n")
-                found = True
-            else:
-                f.write(line)
-        
-        if not found:
-            f.write(f"\nRESTART_CHAT_ID={message.chat.id}\n")
-
     await message.answer("Перезапускаюсь... 🔄")
 
-    if os.getenv("INVOCATION_ID"):
-        subprocess.run(["systemctl", "--user", "restart", "bot.service"])
-        return
-
-    if "SUPERVISOR_PROCESS_NAME" in os.environ:
-        os._exit(1)
-
-    os.execv(sys.executable, ['python'] + sys.argv)
+    subprocess.call(["sudo", "systemctl", "restart", "telegram-bot"])
