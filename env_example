@@ -5,4 +5,8 @@
 BOT_API_TOKEN=your_bot_api_token_here
 
 # ID владельца
-OWNER_ID=your_OWNER_ID_here
+OWNER_ID=your_owner_id_here
+
+# Ваши API_ID и api_hash (можно взять тут: https://my.telegram.org/apps)
+API_ID=your_api_id
+api_hash=your_api_hash
