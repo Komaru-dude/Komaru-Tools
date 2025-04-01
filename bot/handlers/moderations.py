@@ -1,10 +1,9 @@
-import os, subprocess, sys
+import os, subprocess
 from bot import db
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
 from .. import OWNER_ID
-from dotenv import load_dotenv, set_key
 
 mod_router = Router()
 OWNER_ID = os.getenv("OWNER_ID")
@@ -334,9 +333,6 @@ async def restart_bot(message: types.Message, bot: Bot):
     if not db.has_permission(message.from_user.id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
-    
-    # Сохраняем ID чата
-    set_key('.env', 'RESTART_CHAT_ID', str(message.chat.id))
     
     await message.answer("Перезапускаюсь... 🔄")
 

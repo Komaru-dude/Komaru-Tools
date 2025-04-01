@@ -1,20 +1,10 @@
-import asyncio, logging, os, sys
+import asyncio, logging, os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 from .handlers.moderations import mod_router
 from .handlers.rights import rght_router
 from .handlers.basic import base_router
 from .handlers.text import txt_router
-
-# Функция отправки сообщения после перезапуска
-async def send_restart_message(bot: Bot):
-    chat_id = os.getenv("RESTART_CHAT_ID")
-    
-    if chat_id and chat_id.isdigit():
-        await bot.send_message(int(chat_id), "✅ Бот успешно перезапущен!")
-        # Удаляем переменную из .env
-        from dotenv import unset_key
-        unset_key('.env', 'RESTART_CHAT_ID')
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -32,9 +22,6 @@ async def main():
         base_router,
         txt_router
     )
-    
-    # Отправка сообщения о перезапуске
-    await send_restart_message(bot)
     
     try:
         await dp.start_polling(bot)
