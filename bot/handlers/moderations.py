@@ -342,3 +342,8 @@ async def restart_bot(message: types.Message, bot: Bot):
         await message.reply("Не удалось перезагрузиться!")
         await bot.send_message(chat_id=OWNER_ID, 
                                 text=f"Во время обработки команды /restart произошла ошибка: {e}")
+
+@mod_router.message(Command("get_admins"))
+async def cmd_getadmins(message: types.Message, bot: Bot):
+    chat_id = message.chat.id
+    
