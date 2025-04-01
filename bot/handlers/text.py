@@ -40,7 +40,6 @@ async def somebody_added(message: types.Message):
 async def message_handler(message: types.Message, bot: Bot): 
     user_id = message.from_user.id
     text = message.text
-    username = message.from_user.username
     first_name = message.from_user.first_name
     if message.chat.type == "private":
         return
@@ -48,10 +47,6 @@ async def message_handler(message: types.Message, bot: Bot):
         return
     if not db.user_exists(user_id):
         db.add_user(user_id)
-    if not db.user_have_username(user_id):
-        db.add_username(user_id, username)
-    if not username == db.get_username(user_id):
-        db.add_username(user_id, username)
     if not db.get_first_name_by_id(user_id):
         db.add_first_name(user_id=user_id, first_name=first_name)
     db.update_count_messges(user_id)
