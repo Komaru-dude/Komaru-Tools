@@ -16,14 +16,9 @@ async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
         chat_name = message.chat.title
         user_id = user.id
-        username = user.username
         first_name = user.first_name
         if not db.user_exists(user_id):
             db.add_user(user_id)
-        if not db.user_have_username(user_id):
-            db.add_username(user_id, username)
-        if not username == db.get_username(user_id):
-            db.add_username(user_id, username) 
         if not db.get_first_name_by_id(user_id):
             db.add_first_name(user_id=user_id, first_name=first_name)
         xiao_file_name = Path(__file__).resolve().parent.parent / 'media' / 'xiao.jpg'
