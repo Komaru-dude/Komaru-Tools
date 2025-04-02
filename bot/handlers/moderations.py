@@ -1,4 +1,4 @@
-import os, subprocess
+import os, subprocess, requests, re
 from bot import db
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
@@ -178,41 +178,44 @@ async def cmd_mute(message: types.Message, bot: Bot):
 @mod_router.message(Command('ban'))
 async def cmd_ban(message: types.Message, bot: Bot):
     user_id = message.from_user.id
+    parts = message.text.split(maxsplit=2)
 
-    # Проверка прав пользователя
+    parts1 = parts[1] if len(parts) > 1 else None
     if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
-
-    # Разбиваем текст команды
-    parts = message.text.split(' ', 3)  # Ожидаем до 4 частей: /ban цель время причина
-
-    # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
-        target_user_id = message.reply_to_message.from_user.id
-        ban_duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
-        reason = parts[2] if len(parts) > 2 else "Без причины"
-        until_date = datetime.now() + ban_duration if ban_duration else None
-        await message.reply_to_message.delete()
-    else:
-        if len(parts) < 2:
-            await message.reply("Ошибка: необходимо указать username, ID или ответить на сообщение цели.")
-            return
+        target_id = message.reply_to_message.from_user.id
+        user = message.reply_to_message.from_user
+    elif parts1 and "@" in parts1:
+        mention_match = re.search(r"@(\w+)", parts1)
+        if mention_match:
+            user_tag = mention_match.group(0)
+            try:
+                response = requests.get(f"http://127.0.0.1:8000/user/{user_tag}")
+                response.raise_for_status()
+                user_data = response.json()
 
-        user_input = parts[1]
+                target_id = user_data.get("user_id", None)
+                if target_id is None:
+                    error_message = user_data.get("error", "Не удалось найти пользователя")
+                    await message.reply(f"Ошибка: {error_message}")
+                    return
 
-        # Если указан username
-        if user_input.startswith('@'):
-            username = user_input[1:]
-            target_user_id = db.get_user_id_by_username(username)
-            if not target_user_id:
-                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
+                user = None
+            except requests.exceptions.RequestException as e:
+                await message.reply(f"Ошибка при запросе: {str(e)}")
                 return
-        elif user_input.isdigit():
-            target_user_id = int(user_input)
         else:
-            await message.reply("Некорректный формат. Используйте /ban <цель> <время> <причина>.")
+            await message.reply("Неверный формат юзернейма.")
             return
+    else:
+        if len(parts) > 1:
+            target_id = parts[1]
+            user = None
+        else:
+            user = message.from_user
+            target_id = user.id
 
         # Проверяем время и причину
         ban_duration = parse_time(parts[2]) if len(parts) > 2 and parse_time(parts[2]) else None
@@ -221,9 +224,9 @@ async def cmd_ban(message: types.Message, bot: Bot):
 
     # Выполняем бан
     try:
-        await bot.ban_chat_member(chat_id=message.chat.id, user_id=target_user_id, until_date=until_date)
+        await bot.ban_chat_member(chat_id=message.chat.id, user_id=target_id, until_date=until_date)
         ban_time_str = f"до {until_date}" if until_date else "навсегда"
-        await message.reply(f"Пользователь {target_user_id} был забанен {ban_time_str}.\nПричина: {reason}")
+        await message.reply(f"Пользователь {target_id} был забанен {ban_time_str}.\nПричина: {reason}")
         db.update_rep(user_id, mode="manual_rem", value=15)
     except Exception as e:
         await message.reply(f"Не удалось забанить пользователя.")
@@ -235,22 +238,42 @@ async def cmd_unmute(message: types.Message, bot: Bot):
     user_id = message.from_user.id
     text = message.text
     parts = text.split(maxsplit=1)
+    parts1 = parts[1] if len(parts) > 1 else None
     if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
-    if len(parts) < 2:
-        await message.reply("Не указано имя пользователя/ID")
-        return
-    
-    target_input = parts[1]
+    if message.reply_to_message:
+        target_id = message.reply_to_message.from_user.id
+        user = message.reply_to_message.from_user
+    elif parts1 and "@" in parts1:
+        mention_match = re.search(r"@(\w+)", parts1)
+        if mention_match:
+            user_tag = mention_match.group(0)
+            try:
+                response = requests.get(f"http://127.0.0.1:8000/user/{user_tag}")
+                response.raise_for_status()
+                user_data = response.json()
 
-    if target_input.startswith("@"):
-        target_id = db.get_user_id_by_username(target_input[1:])
-    elif target_input.isdigit():
-        target_id = int(target_input)
+                target_id = user_data.get("user_id", None)
+                if target_id is None:
+                    error_message = user_data.get("error", "Не удалось найти пользователя")
+                    await message.reply(f"Ошибка: {error_message}")
+                    return
+
+                user = None
+            except requests.exceptions.RequestException as e:
+                await message.reply(f"Ошибка при запросе: {str(e)}")
+                return
+        else:
+            await message.reply("Неверный формат юзернейма.")
+            return
     else:
-        await message.reply("Некорректный формат. Используйте /unmute <username/ID>.")
-        return
+        if len(parts) > 1:
+            target_id = parts[1]
+            user = None
+        else:
+            user = message.from_user
+            target_id = user.id
     try:
         await bot.restrict_chat_member(
             message.chat.id, 
@@ -268,26 +291,43 @@ async def cmd_unmute(message: types.Message, bot: Bot):
     user_id = message.from_user.id
     text = message.text
     parts = text.split(maxsplit=1)
+    parts1 = parts[1] if len(parts) > 1 else None
     if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
-    if len(parts) < 2:
-        await message.reply("Не указано имя пользователя/ID")
-        return
-    
-    target_input = parts[1]
+    if message.reply_to_message:
+        target_id = message.reply_to_message.from_user.id
+        user = message.reply_to_message.from_user
+    elif parts1 and "@" in parts1:
+        mention_match = re.search(r"@(\w+)", parts1)
+        if mention_match:
+            user_tag = mention_match.group(0)
+            try:
+                response = requests.get(f"http://127.0.0.1:8000/user/{user_tag}")
+                response.raise_for_status()
+                user_data = response.json()
 
-    if target_input.startswith("@"):
-        try:
-            target_id = db.get_user_id_by_username(target_input[1:])
-        except Exception as e:
-            message.reply("Возникла ошибка при получении ID пользователя.")
+                target_id = user_data.get("user_id", None)
+                if target_id is None:
+                    error_message = user_data.get("error", "Не удалось найти пользователя")
+                    await message.reply(f"Ошибка: {error_message}")
+                    return
 
-    elif target_input.isdigit():
-        target_id = int(target_input)
+                user = None
+            except requests.exceptions.RequestException as e:
+                await message.reply(f"Ошибка при запросе: {str(e)}")
+                return
+        else:
+            await message.reply("Неверный формат юзернейма.")
+            return
     else:
-        await message.reply("Некорректный формат. Используйте /unban <username/ID>.")
-        return
+        if len(parts) > 1:
+            target_id = parts[1]
+            user = None
+        else:
+            user = message.from_user
+            target_id = user.id
+
     try:
         await bot.unban_chat_member(message.chat.id, target_id, only_if_banned=True)
         await message.reply(f"Пользователь {target_id} разбанен.")
@@ -301,11 +341,10 @@ async def cmd_history(message: types.Message):
     user_id = message.from_user.id
     history = db.get_history(user_id)
     
-    if not history:  # Если истории нет
+    if not history:
         await message.reply("У вас пока нет наказаний.")
         return
-    
-    # Формируем текст ответа
+
     history_text = ""
     for i, entry in enumerate(history, start=1):
         punishment_type = entry["type"]
