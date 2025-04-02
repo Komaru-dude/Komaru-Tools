@@ -1,5 +1,4 @@
-import asyncio
-import os
+import asyncio, os, logging
 from pyrogram import Client
 from fastapi import FastAPI
 from dotenv import load_dotenv
@@ -24,7 +23,7 @@ async def get_user_id(username: str):
 async def start_pyrogram():
     """ Запуск Pyrogram-бота в фоне """
     await app.start()
-    print("Pyrogram бот запущен")
+    logging.info("Pyrogram бот запущен.")
     await asyncio.Event().wait()
 
 # Запускаем Pyrogram-бота отдельно
