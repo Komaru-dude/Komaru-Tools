@@ -9,23 +9,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 txt_router = Router()
-ADMIN_ID = os.getenv("ADMIN_ID")
+OWNER_ID = os.getenv("OWNER_ID")
 
 @txt_router.message(F.new_chat_members)
 async def somebody_added(message: types.Message):
     for user in message.new_chat_members:
         chat_name = message.chat.title
         user_id = user.id
-        username = user.username
         first_name = user.first_name
         if not db.user_exists(user_id):
             db.add_user(user_id)
-        if not db.user_have_username(user_id):
-            db.add_username(user_id, username)
-        if not username == db.get_username(user_id):
-            db.add_username(user_id, username) 
-        if not db.get_first_name_by_id(user_id):
-            db.add_first_name(user_id=user_id, first_name=first_name)
         xiao_file_name = Path(__file__).resolve().parent.parent / 'media' / 'xiao.jpg'
         xiao_hello_image = FSInputFile(xiao_file_name)
         await message.reply_photo(
@@ -40,7 +33,6 @@ async def somebody_added(message: types.Message):
 async def message_handler(message: types.Message, bot: Bot): 
     user_id = message.from_user.id
     text = message.text
-    username = message.from_user.username
     first_name = message.from_user.first_name
     if message.chat.type == "private":
         return
@@ -48,16 +40,10 @@ async def message_handler(message: types.Message, bot: Bot):
         return
     if not db.user_exists(user_id):
         db.add_user(user_id)
-    if not db.user_have_username(user_id):
-        db.add_username(user_id, username)
-    if not username == db.get_username(user_id):
-        db.add_username(user_id, username)
-    if not db.get_first_name_by_id(user_id):
-        db.add_first_name(user_id=user_id, first_name=first_name)
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
-        await bot.send_message(chat_id=ADMIN_ID, text=f"Найдено запрещённое слово в сообщении пользователя {user_id}")
+        await bot.send_message(chat_id=OWNER_ID, text=f"Найдено запрещённое слово в сообщении пользователя {user_id}")
         new_time = datetime.now() + timedelta(hours=2)
         timestamp = new_time.timestamp()
         try:
@@ -73,8 +59,8 @@ async def message_handler(message: types.Message, bot: Bot):
             message.reply("Не удалось ограничить пользователя.")
     else:
         raw_data = db.get_user_data(user_id)
-        message_count = raw_data[8]
-        old_need_msg = raw_data[13]
+        message_count = raw_data[7]
+        old_need_msg = raw_data[11]
         if old_need_msg <= message_count:
             new_need_msg = message_count + random.randint(4, 15)
             db.update_need_msg(user_id, new_need_msg)
