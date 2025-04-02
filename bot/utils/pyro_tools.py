@@ -20,12 +20,33 @@ async def get_user_id(username: str):
     except Exception as e:
         return {"error": str(e)}
 
+@server.get("/username/{chat_id}/{user_id}")
+async def get_username_by_id(chat_id: str, user_id: int):
+    try:
+        # Перебираем участников чата
+        async for member in app.get_chat_members(chat_id):
+            if member.user.id == user_id:
+                return {"username": member.user.username}
+        return {"error": "User not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@server.get("/first_name/{chat_id}/{user_id}")
+async def get_first_name_by_id(chat_id: str, user_id: int):
+    try:
+        # Перебираем участников чата
+        async for member in app.get_chat_members(chat_id):
+            if member.user.id == user_id:
+                return {"first_name": member.user.first_name}
+        return {"error": "User not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
 async def start_pyrogram():
     """ Запуск Pyrogram-бота в фоне """
     await app.start()
     logging.info("Pyrogram бот запущен.")
     await asyncio.Event().wait()
 
-# Запускаем Pyrogram-бота отдельно
 loop = asyncio.get_event_loop()
 loop.create_task(start_pyrogram())
