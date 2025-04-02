@@ -116,6 +116,7 @@ async def warn_cmd(message: types.Message, bot: Bot):
 @mod_router.message(Command("mute"))
 async def cmd_mute(message: types.Message, bot: Bot):
     user_id = message.from_user.id
+    
 
     # Проверка прав пользователя
     if not db.has_permission(user_id, 2):
@@ -123,7 +124,8 @@ async def cmd_mute(message: types.Message, bot: Bot):
         return
 
     # Разбиваем текст команды
-    parts = message.text.split(' ', 3)  # Ожидаем до 4 частей: /mute цель время причина
+    parts = message.text.split(' ', 3)
+    parts1 = parts[1] if len(parts) > 1 else None
 
     # Проверка: ответ на сообщение или указан username/ID
     if message.reply_to_message:
@@ -141,11 +143,25 @@ async def cmd_mute(message: types.Message, bot: Bot):
 
         # Если указан username
         if user_input.startswith('@'):
-            username = user_input[1:]
-            target_user_id = db.get_user_id_by_username(username)
-            if not target_user_id:
-                await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
-                return
+            mention_match = re.search(r"@(\w+)", parts1)
+            if mention_match:
+                user_tag = mention_match.group(0)
+                try:
+                    response = requests.get(f"http://127.0.0.1:8000/user/{user_tag}")
+                    response.raise_for_status()
+                    user_data = response.json()
+
+                    user_id = user_data.get("user_id", None)
+                    if user_id is None:
+                        error_message = user_data.get("error", "Не удалось найти пользователя")
+                        await message.reply(f"Ошибка: {error_message}")
+                        return
+
+                    user = None
+                    first_name = db.get_first_name_by_id(user_id)
+                except requests.exceptions.RequestException as e:
+                    await message.reply(f"Ошибка при запросе: {str(e)}")
+                    return
         elif user_input.isdigit():
             target_user_id = int(user_input)
         else:
