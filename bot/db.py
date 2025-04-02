@@ -243,6 +243,18 @@ def set_param(user_id, param, value):
         print(f"Ошибка при обновлении параметра: {e}")
     conn.close()
 
+def get_param(user_id, param):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT {param} FROM users WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        return result[0]
+    return None
+
 def update_rep(user_id, mode, value=None):
     if not user_id or not isinstance(user_id, int):
         raise ValueError("Неверный user_id. Он должен быть целым числом.")
