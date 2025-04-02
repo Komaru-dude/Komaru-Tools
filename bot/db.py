@@ -35,7 +35,6 @@ if not os.path.exists(DB_PATH):
     create_db()
 
 def has_permission(user_id, level):
-
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -114,12 +113,9 @@ def update_user_warns(user_id, reason):
     }
 
     history.append(punishment)
-
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
-
     warns += 1
     cursor.execute('''UPDATE users SET warns = ? WHERE user_id = ?''', (warns, user_id))
-
     conn.commit()
     conn.close()
 
@@ -144,10 +140,8 @@ def update_user_bans(user_id, reason):
     }
 
     history.append(punishment)
-
     bans += 1
     cursor.execute('''UPDATE users SET bans = ? WHERE user_id = ?''', (bans, user_id))
-
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
     conn.commit()
     conn.close()
@@ -174,9 +168,7 @@ def update_user_mutes(user_id, reason):
 
     mutes += 1
     cursor.execute('''UPDATE users SET mutes = ? WHERE user_id = ?''', (mutes, user_id))
-
     history.append(punishment)
-
     cursor.execute('''UPDATE users SET history = ? WHERE user_id = ?''', (json.dumps(history), user_id))
     conn.commit()
     conn.close()
@@ -208,7 +200,6 @@ def update_user_id(user_id, new_id):
     cursor = conn.cursor()
     cursor.execute('''UPDATE users SET user_id = ? WHERE user_id = ?''', (new_id, user_id))
     conn.commit()
-    
     conn.close()
 
 def get_history(user_id):
