@@ -27,91 +27,72 @@ def parse_time(time_str):
 
 @mod_router.message(Command("warn"))
 async def warn_cmd(message: types.Message, bot: Bot):
-    # Проверяем, есть ли у пользователя разрешение на "блокировку пользователей"
     user_id = message.from_user.id
+    parts = message.text.split(' ', 2)
+
     if not db.has_permission(user_id, 2):
         await message.reply("У вас нет прав для выполнения этой команды.")
         return
     
-    # Проверяем, ответил ли пользователь на сообщение
     if message.reply_to_message:
         target_user_id = message.reply_to_message.from_user.id
-        reason = message.text.split(' ', 1)[1] if len(message.text.split(' ', 1)) > 1 else "Без причины"
-        if not db.user_exists(target_user_id):
-            db.add_user(target_user_id)
-        db.update_user_warns(target_user_id, reason)
-        user_data = db.get_user_data(target_user_id)
-        warns = user_data[2]
-        warn_limit = user_data[10]
-        if warns >= warn_limit:
-            until_date = datetime.now() + timedelta(hours=2)
-            await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
-            db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
-            db.update_user_warn_limit(target_user_id, 3)
-            db.update_rep(user_id, mode="manual_rem", value=3)
-            await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
-        db.update_rep(user_id, mode="manual_rem", value=5)
-        await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
-                            f"Причина: {reason}")
-        await message.reply_to_message.delete()
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+    elif parts[1].startswith("@"):
+        user_tag = parts[1]
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+        try:
+            response = requests.get(f"http://127.0.0.1:8000/user/{user_tag}")
+            response.raise_for_status()
+            user_data = response.json()
+
+            target_user_id = user_data.get("user_id", None)
+            if target_user_id is None:
+                error_message = user_data.get("error", "Не удалось найти пользователя")
+                await message.reply(f"Ошибка: {error_message}")
+                return
+        except requests.exceptions.RequestException as e:
+            await message.reply(f"Ошибка при запросе: {str(e)}")
+            return
+    elif parts[1].isdigit:
+        target_user_id = parts[1]
+        reason = parts[2] if len(parts) > 2 else "Без причины"
     else:
-        # Разделяем команду и аргументы
-        parts = message.text.split(' ', 2)
-        
-        # Проверяем, правильно ли введены аргументы
-        if len(parts) > 1:
-            user_input = parts[1]  # Введён юзернейм или ID
-            reason = parts[2] if len(parts) > 2 else "Без причины"
-            
-            if user_input.startswith('@'):  # Если введён юзернейм
-                username = user_input[1:]  # Убираем "@" в начале
-                # Получаем user_id из базы данных по юзернейму
-                target_user_id = db.get_user_id_by_username(username)
-                if target_user_id:
-                    if not db.user_exists(target_user_id):
-                        db.add_user(target_user_id)
-                    db.update_user_warns(target_user_id, reason)
-                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
-                                         f"Причина: {reason}")
-                    user_data = db.get_user_data(target_user_id)
-                    warns = user_data[2]
-                    warn_limit = user_data[10]
-                    if warns >= warn_limit:
-                        until_date = datetime.now() + timedelta(hours=2)
-                        await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
-                        db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
-                        db.update_user_warn_limit(target_user_id, 3)
-                        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
-                else:
-                    await message.reply(f"Пользователь с юзернеймом @{username} не найден.")
-            elif user_input.isdigit():  # Если введён ID
-                target_user_id = int(user_input)
-                try:
-                    if not db.user_exists(target_user_id):
-                        db.add_user(target_user_id)
-                    db.update_user_warns(target_user_id, reason)
-                    await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\n"
-                                         f"Причина: {reason}")
-                    db.update_rep(user_id, mode="manual_rem", value=5)
-                    user_data = db.get_user_data(target_user_id)
-                    warns = user_data[2]
-                    warn_limit = user_data[10]
-                    if warns >= warn_limit:
-                        until_date = datetime.now() + timedelta(hours=2)
-                        await bot.restrict_chat_member(message.chat.id, target_user_id, types.ChatPermissions(can_send_messages=False, can_send_other_messages=False), until_date=until_date)
-                        db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
-                        db.update_user_warn_limit(target_user_id, 3)
-                        db.update_rep(user_id, mode="manual_rem", value=3)
-                        await message.reply(f"Пользователь с ID {target_user_id} был замьючен на 2 часа за превышение лимита предупреждений.")
-                except Exception as e:
-                    await message.reply(f"Не удалось найти пользователя с ID {target_user_id}.")
-                    await bot.send_message(chat_id=OWNER_ID, 
-                                           text=f"Во время обработки команды /warn произошла ошибка: {e}")
-            else:
-                await message.reply("Некорректный формат. Используйте /warn @username причина или /warn ID причина.")
-        else:
-            await message.reply("Синтаксис команды некорректный.\n"
-                                 "Используйте /warn @username причина или /warn ID причина.")
+        await message.reply("Некорретный формат.\nИспользуйте /warn @username/ID причина.")
+        return
+
+    db.update_user_warns(target_user_id, reason)
+    user_data = db.get_user_data(target_user_id)
+    if user_data:
+        warns = int(user_data[1])
+        warn_limit = int(user_data[9])
+        print(warns, warn_limit)
+    else:
+        db.add_user(target_user_id)
+        warns = 0
+        warn_limit = 3
+
+    warns += 1
+
+    if warns > warn_limit:
+        warn_limit += 3
+        db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
+        try:
+            until_date = datetime.now() + timedelta(hours=24)
+            await bot.restrict_chat_member(
+                message.chat.id,
+                target_user_id,
+                types.ChatPermissions(can_send_messages=False),
+                until_date=until_date)
+            db.update_user_mutes(target_user_id, "Превышение лимита предупреждений")
+            time_str = f"до {until_date.strftime('%Y-%m-%d %H:%M:%S')}"
+            await message.answer(f"Пользователь с ID {target_user_id} был замьючен {time_str}.\nПричина: Превышение лимита предупреждений")
+            db.update_rep(user_id, mode="manual_rem", value=15)
+            db.update_user_warn_limit(target_user_id, warn_limit)
+        except Exception as e:
+            await message.reply(f"Не удалось замьютить пользователя.")
+            await bot.send_message(chat_id=OWNER_ID, text=f"Во время обработки команды /mute произошла ошибка: {e}")
+    else:
+        await message.reply(f"Пользователь с ID {target_user_id} был предупреждён.\nПричина: {reason}")
 
 @mod_router.message(Command("mute"))
 async def cmd_mute(message: types.Message, bot: Bot):
@@ -151,14 +132,11 @@ async def cmd_mute(message: types.Message, bot: Bot):
                     response.raise_for_status()
                     user_data = response.json()
 
-                    user_id = user_data.get("user_id", None)
-                    if user_id is None:
+                    target_user_id = user_data.get("user_id", None)
+                    if target_user_id is None:
                         error_message = user_data.get("error", "Не удалось найти пользователя")
                         await message.reply(f"Ошибка: {error_message}")
                         return
-
-                    user = None
-                    first_name = db.get_first_name_by_id(user_id)
                 except requests.exceptions.RequestException as e:
                     await message.reply(f"Ошибка при запросе: {str(e)}")
                     return
@@ -203,8 +181,15 @@ async def cmd_ban(message: types.Message, bot: Bot):
     if message.reply_to_message:
         target_id = message.reply_to_message.from_user.id
         user = message.reply_to_message.from_user
+        ban_duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+        until_date = datetime.now() + ban_duration if ban_duration else None
+        await message.reply_to_message.delete()
     elif parts1 and "@" in parts1:
         mention_match = re.search(r"@(\w+)", parts1)
+        ban_duration = parse_time(parts[1]) if len(parts) > 1 and parse_time(parts[1]) else None
+        reason = parts[2] if len(parts) > 2 else "Без причины"
+        until_date = datetime.now() + ban_duration if ban_duration else None
         if mention_match:
             user_tag = mention_match.group(0)
             try:
@@ -392,7 +377,7 @@ async def restart_bot(message: types.Message, bot: Bot):
     await message.answer("Перезапускаюсь... 🔄")
 
     try:
-        subprocess.call(["sudo", "systemctl", "restart", "komaru-tools"]) # Обязательно проверьте наличие сервиса
+        subprocess.call(["sudo", "systemctl", "restart", "komaru-tools"])
     except Exception as e:
         await message.reply("Не удалось перезагрузиться!")
         await bot.send_message(chat_id=OWNER_ID, 
