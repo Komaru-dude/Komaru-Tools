@@ -1,4 +1,4 @@
-import time, psutil, re
+import time, psutil, re, requests
 from aiogram import types, Router
 from aiogram.types import FSInputFile, Message
 from aiogram.filters import Command
@@ -38,8 +38,6 @@ async def cmd_start(message: types.Message):
     username = message.from_user.username
     if not db.user_exists(user_id):
         db.add_user(user_id)
-    if not db.user_have_username(user_id):
-        db.add_username(user_id, username)
     await message.reply(f"Гойда @{username}")
 
 @base_router.message(Command("status"))
@@ -86,6 +84,7 @@ async def cmd_status(message: types.Message):
 async def cmd_info(message: types.Message):
     parts = message.text.split()
     parts1 = parts[1] if len(parts) > 1 else None
+
     # Достаём информацию о пользователе
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
@@ -93,13 +92,27 @@ async def cmd_info(message: types.Message):
         first_name = message.reply_to_message.from_user.first_name
     elif parts1 and "@" in parts1:
         mention_match = re.search(r"@(\w+)", parts1)
-        username = mention_match.group(1)
-        user_id = db.get_user_id_by_username(username=username)
-        if user_id is None:
-            await message.reply("Не удалось найти пользователя")
+        if mention_match:
+            user_tag = mention_match.group(0)
+            try:
+                response = requests.get(f"http://127.0.0.1:8000/user/{user_tag}")
+                response.raise_for_status()
+                user_data = response.json()
+
+                user_id = user_data.get("user_id", None)
+                if user_id is None:
+                    error_message = user_data.get("error", "Не удалось найти пользователя")
+                    await message.reply(f"Ошибка: {error_message}")
+                    return
+
+                user = None
+                first_name = db.get_first_name_by_id(user_id)
+            except requests.exceptions.RequestException as e:
+                await message.reply(f"Ошибка при запросе: {str(e)}")
+                return
+        else:
+            await message.reply("Неверный формат юзернейма.")
             return
-        user = None
-        first_name = db.get_first_name_by_id(user_id)
     else:
         if len(parts) > 1:
             user_id = parts[1]
@@ -109,7 +122,7 @@ async def cmd_info(message: types.Message):
             user = message.from_user
             first_name = user.first_name
             user_id = user.id
-    
+
     # Ссылка на профиль по ID
     profile_link = f"tg://user?id={user_id}"
     # Формируем кликабельное имя пользователя
@@ -119,6 +132,7 @@ async def cmd_info(message: types.Message):
     user_data = db.get_user_data(user_id)
     if not user_id == user_data[0]:
         db.update_user_id(user_data[0], user_id)
+    
     # Формируем текст с информацией о пользователе
     user_info = (
         f"Информация о пользователе: {clickable_name}\n"
