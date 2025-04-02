@@ -59,8 +59,8 @@ async def message_handler(message: types.Message, bot: Bot):
             message.reply("Не удалось ограничить пользователя.")
     else:
         raw_data = db.get_user_data(user_id)
-        message_count = raw_data[8]
-        old_need_msg = raw_data[13]
+        message_count = raw_data[7]
+        old_need_msg = raw_data[11]
         if old_need_msg <= message_count:
             new_need_msg = message_count + random.randint(4, 15)
             db.update_need_msg(user_id, new_need_msg)
