@@ -136,13 +136,13 @@ async def cmd_info(message: types.Message):
     # Формируем текст с информацией о пользователе
     user_info = (
         f"Информация о пользователе: {clickable_name}\n"
-        f"Преды/муты/баны: {user_data[2]} из {user_data[10]}/{user_data[4]}/{user_data[3]}\n\n"
+        f"Преды/муты/баны: {user_data[1]} из {user_data[10]}/{user_data[2]}/{user_data[3]}\n\n"
         f"🆔 Айди: {user_data[0]}\n"
-        f"🏅 Ранг: {user_data[6]}\n"
-        f"💬 Кол-во сообщений: {user_data[8]}\n"
-        f"💎 Репутация: {user_data[5]}\n"
-        f"🖼 Демотиваторы: {user_data[9]}\n"
-        f"✍️ Префикс: {user_data[7]}"
+        f"🏅 Ранг: {user_data[5]}\n"
+        f"💬 Кол-во сообщений: {user_data[7]}\n"
+        f"💎 Репутация: {user_data[4]}\n"
+        f"🖼 Демотиваторы: {user_data[8]}\n"
+        f"✍️ Префикс: {user_data[6]}"
     )
 
     # Отправляем сообщение с информацией

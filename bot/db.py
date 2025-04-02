@@ -26,7 +26,6 @@ def create_db():
                         demotivators INTEGER DEFAULT 0,
                         warn_limit INTEGER DEFAULT 3,
                         history TEXT DEFAULT '',
-                        first_name TEXT DEFAULT '',
                         need_msg INTEGER DEFAULT 10
                     )''')
     conn.commit()
@@ -243,32 +242,6 @@ def set_param(user_id, param, value):
     except sqlite3.Error as e:
         print(f"Ошибка при обновлении параметра: {e}")
     conn.close()
-
-def get_first_name_by_id(user_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''SELECT first_name FROM users WHERE user_id = ?''', (user_id,))
-    result = cursor.fetchone()
-    conn.close()
-    return result[0] if result else None
-
-def add_first_name(user_id, first_name):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''UPDATE users SET first_name = ? WHERE user_id = ?''', (first_name, user_id))
-    conn.commit()
-    conn.close()
-
-def user_have_first_name(user_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('SELECT first_name FROM users WHERE user_id = ?', (user_id,))
-    exists = cursor.fetchone()
-    conn.close()
-    if not exists == '':
-        return False
-    else:
-        return True
 
 def update_rep(user_id, mode, value=None):
     if not user_id or not isinstance(user_id, int):

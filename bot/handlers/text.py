@@ -19,8 +19,6 @@ async def somebody_added(message: types.Message):
         first_name = user.first_name
         if not db.user_exists(user_id):
             db.add_user(user_id)
-        if not db.get_first_name_by_id(user_id):
-            db.add_first_name(user_id=user_id, first_name=first_name)
         xiao_file_name = Path(__file__).resolve().parent.parent / 'media' / 'xiao.jpg'
         xiao_hello_image = FSInputFile(xiao_file_name)
         await message.reply_photo(
@@ -42,8 +40,6 @@ async def message_handler(message: types.Message, bot: Bot):
         return
     if not db.user_exists(user_id):
         db.add_user(user_id)
-    if not db.get_first_name_by_id(user_id):
-        db.add_first_name(user_id=user_id, first_name=first_name)
     db.update_count_messges(user_id)
     mute_user = check_ban_words(text)
     if mute_user:
