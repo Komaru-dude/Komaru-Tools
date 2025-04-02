@@ -82,6 +82,7 @@ async def cmd_status(message: types.Message):
 
 @base_router.message(Command("info"))
 async def cmd_info(message: types.Message):
+    chat_id = message.chat.id
     parts = message.text.split()
     parts1 = parts[1] if len(parts) > 1 else None
 
@@ -106,7 +107,7 @@ async def cmd_info(message: types.Message):
                     return
 
                 user = None
-                first_name = db.get_first_name_by_id(user_id)
+                first_name = requests.get(f"http://127.0.0.1:8000/first_name/{chat_id}/{user_id}").json().get("first_name", "None")
             except requests.exceptions.RequestException as e:
                 await message.reply(f"Ошибка при запросе: {str(e)}")
                 return
@@ -116,7 +117,7 @@ async def cmd_info(message: types.Message):
     else:
         if len(parts) > 1:
             user_id = parts[1]
-            first_name = db.get_first_name_by_id(user_id)
+            first_name = requests.get(f"http://127.0.0.1:8000/first_name/{chat_id}/{user_id}").json().get("first_name", "None")
             user = None
         else:
             user = message.from_user
@@ -136,7 +137,7 @@ async def cmd_info(message: types.Message):
     # Формируем текст с информацией о пользователе
     user_info = (
         f"Информация о пользователе: {clickable_name}\n"
-        f"Преды/муты/баны: {user_data[1]} из {user_data[10]}/{user_data[2]}/{user_data[3]}\n\n"
+        f"Преды/муты/баны: {user_data[1]} из {user_data[9]}/{user_data[2]}/{user_data[3]}\n\n"
         f"🆔 Айди: {user_data[0]}\n"
         f"🏅 Ранг: {user_data[5]}\n"
         f"💬 Кол-во сообщений: {user_data[7]}\n"
