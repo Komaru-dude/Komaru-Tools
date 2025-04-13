@@ -377,7 +377,7 @@ async def restart_bot(message: types.Message, bot: Bot):
     await message.answer("Перезапускаюсь... 🔄")
 
     try:
-        subprocess.call(["sudo", "systemctl", "restart", "komaru-tools"])
+        subprocess.Popen(["sudo", "systemctl", "restart", "komaru-tools"])
     except Exception as e:
         await message.reply("Не удалось перезагрузиться!")
         await bot.send_message(chat_id=OWNER_ID, 
