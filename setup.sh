@@ -71,13 +71,14 @@ Type=simple
 WorkingDirectory=${INSTALL_DIR}
 EnvironmentFile=${INSTALL_DIR}/.env
 ExecStartPre=/usr/bin/git -C ${INSTALL_DIR} pull
-ExecStart=${INSTALL_DIR}/venv/bin/python -m bot
+ExecStart=/bin/bash -c 'source ${INSTALL_DIR}/venv/bin/activate && ${INSTALL_DIR}/venv/bin/python -m bot'
 KillMode=process
 Restart=always
 RestartSec=10
 User=${USER_NAME}
 Group=${GROUP_NAME}
 Environment=USER=%n
+Environment="PATH=${INSTALL_DIR}/venv/bin:$PATH"
 
 [Install]
 WantedBy=multi-user.target
