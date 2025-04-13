@@ -3,7 +3,6 @@ from bot import db
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
-from .. import OWNER_ID
 
 mod_router = Router()
 OWNER_ID = os.getenv("OWNER_ID")
