@@ -3,7 +3,6 @@ from bot import db
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
 from datetime import datetime, timedelta
-from .. import OWNER_ID
 
 mod_router = Router()
 OWNER_ID = os.getenv("OWNER_ID")
@@ -377,7 +376,7 @@ async def restart_bot(message: types.Message, bot: Bot):
     await message.answer("Перезапускаюсь... 🔄")
 
     try:
-        subprocess.call(["sudo", "systemctl", "restart", "komaru-tools"])
+        subprocess.Popen(["sudo", "systemctl", "restart", "komaru-tools.service"])
     except Exception as e:
         await message.reply("Не удалось перезагрузиться!")
         await bot.send_message(chat_id=OWNER_ID, 
