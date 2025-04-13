@@ -3,9 +3,11 @@ import logging
 import os
 import subprocess
 import signal
+import sys
 from aiogram import Bot, Dispatcher
 from aiogram.methods import DeleteWebhook
 from dotenv import load_dotenv
+from pathlib import Path
 from .handlers.moderations import mod_router
 from .handlers.rights import rght_router
 from .handlers.basic import base_router
@@ -26,7 +28,6 @@ if not OWNER_ID.isdigit():
 bot = Bot(API_TOKEN)
 dp = Dispatcher()
 
-# Подключаем роутеры
 dp.include_routers(
     mod_router,
     rght_router,
@@ -37,15 +38,26 @@ dp.include_routers(
 async def main():
     logging.basicConfig(level=logging.INFO)
     
-    pyrogram_process = subprocess.Popen(["uvicorn", "bot.utils.pyro_tools:server", "--host", "127.0.0.1", "--port", "8000"])
+    uvicorn_exec = Path(sys.prefix) / 'Scripts' / 'uvicorn.exe' if sys.platform == 'win32' else Path(sys.prefix) / 'bin' / 'uvicorn'
+    pyrogram_process = subprocess.Popen(
+        [uvicorn_exec, "bot.utils.pyro_tools:server", "--host", "127.0.0.1", "--port", "8001"],
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
+    )
 
     try:
         await bot(DeleteWebhook(drop_pending_updates=True))
         await dp.start_polling(bot)
     finally:
-        await bot.close()
-        pyrogram_process.send_signal(signal.SIGTERM)  # Отправляем сигнал для остановки Pyrogram-бота
-        pyrogram_process.wait()  # Ждём завершения процесса Pyrogram
+        await bot.session.close()
+        if pyrogram_process.poll() is None:
+            if sys.platform == 'win32':
+                pyrogram_process.send_signal(signal.CTRL_BREAK_EVENT)
+            else:
+                pyrogram_process.send_signal(signal.SIGTERM)
+            try:
+                pyrogram_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pyrogram_process.kill()
 
 if __name__ == "__main__":
     try:
