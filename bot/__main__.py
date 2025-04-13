@@ -13,8 +13,17 @@ from .handlers.text import txt_router
 
 load_dotenv()
 
-token = os.getenv("BOT_API_TOKEN")
-bot = Bot(token)
+API_TOKEN = os.getenv('BOT_API_TOKEN')
+OWNER_ID = os.getenv('OWNER_ID')
+
+if not API_TOKEN:
+    raise ValueError("API_TOKEN не задан в .env файле")
+if not OWNER_ID:
+    raise ValueError("OWNER_ID не задан в .env файле")
+if not OWNER_ID.isdigit():
+    raise ValueError("OWNER_ID задан некорректно")
+
+bot = Bot(API_TOKEN)
 dp = Dispatcher()
 
 # Подключаем роутеры
