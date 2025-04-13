@@ -2,9 +2,9 @@ import asyncio
 import logging
 import os
 import subprocess
-import sys
 import signal
 from aiogram import Bot, Dispatcher
+from aiogram.methods import DeleteWebhook
 from dotenv import load_dotenv
 from .handlers.moderations import mod_router
 from .handlers.rights import rght_router
@@ -31,6 +31,7 @@ async def main():
     pyrogram_process = subprocess.Popen(["uvicorn", "bot.utils.pyro_tools:server", "--host", "127.0.0.1", "--port", "8000"])
 
     try:
+        await bot(DeleteWebhook(drop_pending_updates=True))
         await dp.start_polling(bot)
     finally:
         await bot.close()
